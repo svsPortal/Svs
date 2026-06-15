@@ -1,517 +1,461 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SVS管理画面</title>
 
 <style>
-
 body{
-
-margin:0;
-padding:20px;
-background:#071a2d;
-color:white;
-font-family:sans-serif;
-
+  margin:0;
+  padding:20px;
+  background:#071a2d;
+  color:white;
+  font-family:sans-serif;
 }
 
 h1{
-
-text-align:center;
-color:#00d4ff;
-margin-bottom:30px;
-
+  text-align:center;
+  color:#00d4ff;
 }
 
 h2{
-
-color:#00d4ff;
-margin-top:40px;
-
+  color:#00d4ff;
+  margin-top:40px;
+  text-align:center;
 }
 
 .section{
-
-margin-bottom:40px;
-
+  margin-bottom:40px;
 }
 
 .player-grid{
-
-display:grid;
-
-grid-template-columns:
-repeat(auto-fit,minmax(230px,1fr));
-
-gap:15px;
-
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:15px;
 }
 
 .player-card{
-
-background:#132b45;
-padding:15px;
-border-radius:12px;
-box-shadow:0 0 10px rgba(0,0,0,0.3);
-
+  background:#132b45;
+  padding:15px;
+  border-radius:12px;
 }
 
 .player-card h3{
-
-margin-top:0;
-color:#00d4ff;
-
+  margin-top:0;
+  color:#00d4ff;
 }
 
-.player-card p{
-
-margin:6px 0;
-
-}
-
-.player-card select{
-
-width:100%;
-padding:8px;
-margin-top:10px;
-border:none;
-border-radius:8px;
-
+.player-card select,
+.player-card button,
+.summary-box input,
+.summary-box button{
+  width:100%;
+  padding:9px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+  box-sizing:border-box;
 }
 
 .player-card button{
-
-width:100%;
-padding:10px;
-margin-top:10px;
-background:#ff4444;
-color:white;
-border:none;
-border-radius:8px;
-font-weight:bold;
-
+  background:#ff4444;
+  color:white;
+  font-weight:bold;
 }
 
 .top-buttons{
-
-display:flex;
-justify-content:center;
-gap:10px;
-margin-bottom:20px;
-
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-bottom:20px;
+  flex-wrap:wrap;
 }
 
 .top-buttons a{
-
-background:#00d4ff;
-color:black;
-padding:10px 15px;
-border-radius:10px;
-text-decoration:none;
-font-weight:bold;
-
+  background:#00d4ff;
+  color:black;
+  padding:10px 15px;
+  border-radius:10px;
+  text-decoration:none;
+  font-weight:bold;
 }
 
-</style>
+.summary-box{
+  max-width:700px;
+  margin:20px auto;
+  background:#132b45;
+  padding:20px;
+  border-radius:12px;
+  text-align:center;
+}
 
+.name-line{
+  color:#ddd;
+  font-size:14px;
+  line-height:1.6;
+  margin-bottom:14px;
+}
+
+.reset-btn{
+  background:#ffaa00;
+  color:black;
+  font-weight:bold;
+}
+
+.search-btn{
+  background:#00d4ff;
+  color:black;
+  font-weight:bold;
+}
+
+.clear-btn{
+  background:#777;
+  color:white;
+  font-weight:bold;
+}
+</style>
 </head>
 
 <body>
 
 <div class="top-buttons">
-
-<a href="index.html">🏠 TOP</a>
-
-<a href="svs-form.html">📝 回答</a>
-
+  <a href="index.html">🏠 TOP</a>
+  <a href="svs-form.html">📝 回答</a>
 </div>
 
 <h1>📋 SVS管理画面</h1>
 
-<div class="section">
+<div class="summary-box">
+  <button class="reset-btn" onclick="resetStatus()">
+    🔄 参加可否を一括リセット
+  </button>
+</div>
 
-<h2>🔥 全FC3</h2>
+<div class="summary-box">
+  <h2>📊 参加状況</h2>
 
-<div class="player-grid"
-id="allFC3"></div>
+  <p id="joinCount">参加人数：0人</p>
 
+  <p id="fc3Count">FC3：0人</p>
+  <div class="name-line" id="fc3Names">-</div>
+
+  <p id="fc2Count">FC2：0人</p>
+  <div class="name-line" id="fc2Names">-</div>
+
+  <p id="fc1Count">FC1：0人</p>
+  <div class="name-line" id="fc1Names">-</div>
+
+  <p id="t10Count">T10：0人</p>
+  <div class="name-line" id="t10Names">-</div>
+
+  <p id="t9Count">T9：0人</p>
+  <div class="name-line" id="t9Names">-</div>
+</div>
+
+<div class="summary-box">
+  <h2>🔍 名前検索</h2>
+
+  <input id="searchName" placeholder="プレイヤー名を入力">
+
+  <button class="search-btn" onclick="searchPlayer()">検索</button>
+  <button class="clear-btn" onclick="clearSearch()">検索解除</button>
 </div>
 
 <div class="section">
-
-<h2>🔥 全FC2</h2>
-
-<div class="player-grid"
-id="allFC2"></div>
-
+  <h2>🔍 検索結果</h2>
+  <div class="player-grid" id="searchResult"></div>
 </div>
 
-<div class="section">
+<div class="section"><h2>🔥 全FC3</h2><div class="player-grid" id="allFC3"></div></div>
+<div class="section"><h2>🔥 全FC2</h2><div class="player-grid" id="allFC2"></div></div>
+<div class="section"><h2>🔥 全FC1</h2><div class="player-grid" id="allFC1"></div></div>
+<div class="section"><h2>🔥 全T10</h2><div class="player-grid" id="allT10"></div></div>
+<div class="section"><h2>🔥 全T9</h2><div class="player-grid" id="allT9"></div></div>
 
-<h2>🔥 全FC1</h2>
-
-<div class="player-grid"
-id="allFC1"></div>
-
-</div>
-
-<div class="section">
-
-<h2>🔥 全T10</h2>
-
-<div class="player-grid"
-id="allT10"></div>
-
-</div>
-
-<div class="section">
-
-<h2>⚔ 本戦A</h2>
-
-<div class="player-grid"
-id="mainA"></div>
-
-</div>
-
-<div class="section">
-
-<h2>⚔ 本戦B</h2>
-
-<div class="player-grid"
-id="mainB"></div>
-
-</div>
-
-<div class="section">
-
-<h2>🛡 支援1</h2>
-
-<div class="player-grid"
-id="support1"></div>
-
-</div>
-
-<div class="section">
-
-<h2>🛡 支援2</h2>
-
-<div class="player-grid"
-id="support2"></div>
-
-</div>
-
-<div class="section">
-
-<h2>⏳ 待機</h2>
-
-<div class="player-grid"
-id="waiting"></div>
-
-</div>
+<div class="section"><h2>⚔ 本戦A</h2><div class="player-grid" id="mainA"></div></div>
+<div class="section"><h2>⚔ 本戦B</h2><div class="player-grid" id="mainB"></div></div>
+<div class="section"><h2>🛡 支援1</h2><div class="player-grid" id="support1"></div></div>
+<div class="section"><h2>🛡 支援2</h2><div class="player-grid" id="support2"></div></div>
+<div class="section"><h2>⏳ 待機</h2><div class="player-grid" id="waiting"></div></div>
 
 <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 
 import {
-initializeApp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-
-import {
-getFirestore,
-collection,
-getDocs,
-doc,
-updateDoc,
-deleteDoc
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  updateDoc,
+  deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-
-apiKey:
-"AIzaSyD826LkOY5iKXH04agBlc9IPHpeBO4C6uM",
-
-authDomain:
-"svsv-54551.firebaseapp.com",
-
-projectId:
-"svsv-54551",
-
-storageBucket:
-"svsv-54551.firebasestorage.app",
-
-messagingSenderId:
-"948158589591",
-
-appId:
-"1:948158589591:web:53b3a4430d0629492597d2"
-
+  apiKey: "AIzaSyD826LkOY5iKXH04agBlc9IPHpeBO4C6uM",
+  authDomain: "svsv-54551.firebaseapp.com",
+  projectId: "svsv-54551",
+  storageBucket: "svsv-54551.firebasestorage.app",
+  messagingSenderId: "948158589591",
+  appId: "1:948158589591:web:53b3a4430d0629492597d2"
 };
 
 const app = initializeApp(firebaseConfig);
-
 const db = getFirestore(app);
 
 let allData = [];
 
 async function loadData(){
+  const snapshot = await getDocs(collection(db,"svsResponses"));
 
-const snapshot = await getDocs(
-collection(db,"svsResponses")
-);
+  allData = [];
 
-allData = [];
+  snapshot.forEach(d => {
+    allData.push({
+      id:d.id,
+      ...d.data()
+    });
+  });
 
-snapshot.forEach(d => {
+  renderAll();
+}
 
-allData.push({
-id:d.id,
-...d.data()
-});
-
-});
-
-renderAll();
-
+function getTierValue(p,type){
+  if(p[`fc3${type}`]) return 3;
+  if(p[`fc2${type}`]) return 2;
+  if(p[`fc1${type}`]) return 1;
+  if(p[`t10${type}`]) return 0;
+  if(p[`t9${type}`]) return -1;
+  return -2;
 }
 
 function getLowestTier(p){
+  const shield = getTierValue(p,"Shield");
+  const spear = getTierValue(p,"Spear");
+  const archer = getTierValue(p,"Archer");
 
-const shield =
+  const minTier = Math.min(shield,spear,archer);
 
-p.fc3Shield ? 3 :
+  if(minTier === 3) return "FC3";
+  if(minTier === 2) return "FC2";
+  if(minTier === 1) return "FC1";
+  if(minTier === 0) return "T10";
+  if(minTier === -1) return "T9";
 
-p.fc2Shield ? 2 :
-
-p.fc1Shield ? 1 :
-
-p.t10Shield ? 0 :
-
--1;
-
-const spear =
-
-p.fc3Spear ? 3 :
-
-p.fc2Spear ? 2 :
-
-p.fc1Spear ? 1 :
-
-p.t10Spear ? 0 :
-
--1;
-
-const archer =
-
-p.fc3Archer ? 3 :
-
-p.fc2Archer ? 2 :
-
-p.fc1Archer ? 1 :
-
-p.t10Archer ? 0 :
-
--1;
-
-const minTier = Math.min(
-shield,
-spear,
-archer
-);
-
-if(minTier === 3){
-return "FC3";
+  return "未分類";
 }
 
-if(minTier === 2){
-return "FC2";
-}
+function getTroopTier(p){
+  const shield =
+    p.fc3Shield ? "FC3" :
+    p.fc2Shield ? "FC2" :
+    p.fc1Shield ? "FC1" :
+    p.t10Shield ? "T10" :
+    p.t9Shield ? "T9" : "-";
 
-if(minTier === 1){
-return "FC1";
-}
+  const spear =
+    p.fc3Spear ? "FC3" :
+    p.fc2Spear ? "FC2" :
+    p.fc1Spear ? "FC1" :
+    p.t10Spear ? "T10" :
+    p.t9Spear ? "T9" : "-";
 
-if(minTier === 0){
-return "T10";
-}
+  const archer =
+    p.fc3Archer ? "FC3" :
+    p.fc2Archer ? "FC2" :
+    p.fc1Archer ? "FC1" :
+    p.t10Archer ? "T10" :
+    p.t9Archer ? "T9" : "-";
 
-return "未分類";
-
+  return `🛡${shield} / ⚔${spear} / 🏹${archer}`;
 }
 
 function renderPlayers(players,id){
+  const div = document.getElementById(id);
+  if(!div) return;
 
-const div = document.getElementById(id);
+  div.innerHTML = "";
 
-if(!div) return;
+  if(players.length === 0){
+    div.innerHTML = `<p>該当なし</p>`;
+    return;
+  }
 
-div.innerHTML = "";
+  players.forEach(p => {
+    div.innerHTML += `
+      <div class="player-card">
+        <h3>${p.playerName || "-"}</h3>
 
-players.forEach(p => {
+        <p>⚔ 戦力: ${p.power || "-"}</p>
+        <p>🏰 サーバー: ${p.server || "-"}</p>
+        <p>🛡 同盟: ${p.alliance || "-"}</p>
+        <p>✅ 参加可否: ${p.status || "-"}</p>
+        <p>🔥 最低Tier: ${getLowestTier(p)}</p>
+        <p>${getTroopTier(p)}</p>
 
-div.innerHTML += `
+        <select onchange="changeGroup('${p.id}',this.value)">
+          <option value="">未設定</option>
+          <option value="本戦A" ${p.group==="本戦A"?"selected":""}>本戦A</option>
+          <option value="本戦B" ${p.group==="本戦B"?"selected":""}>本戦B</option>
+          <option value="支援1" ${p.group==="支援1"?"selected":""}>支援1</option>
+          <option value="支援2" ${p.group==="支援2"?"selected":""}>支援2</option>
+          <option value="待機" ${p.group==="待機"?"selected":""}>待機</option>
+        </select>
 
-<div class="player-card">
-
-<h3>${p.playerName || "-"}</h3>
-
-<p>⚔ 戦力:
-${p.power || "-"}</p>
-
-<p>🏰 サーバー:
-${p.server || "-"}</p>
-
-<p>🛡 同盟:
-${p.alliance || "-"}</p>
-
-<p>🔥 最低Tier:
-${getLowestTier(p)}</p>
-
-<select onchange="changeGroup('${p.id}',this.value)">
-
-<option value="">未設定</option>
-
-<option value="本戦A"
-${p.group==="本戦A"?"selected":""}>
-本戦A
-</option>
-
-<option value="本戦B"
-${p.group==="本戦B"?"selected":""}>
-本戦B
-</option>
-
-<option value="支援1"
-${p.group==="支援1"?"selected":""}>
-支援1
-</option>
-
-<option value="支援2"
-${p.group==="支援2"?"selected":""}>
-支援2
-</option>
-
-<option value="待機"
-${p.group==="待機"?"selected":""}>
-待機
-</option>
-
-</select>
-
-<button onclick="removePlayer('${p.id}')">
-
-削除
-
-</button>
-
-</div>
-
-`;
-
-});
-
+        <button onclick="removePlayer('${p.id}')">削除</button>
+      </div>
+    `;
+  });
 }
 
 window.changeGroup = async function(id,group){
+  await updateDoc(doc(db,"svsResponses",id),{
+    group:group
+  });
 
-await updateDoc(
-doc(db,"svsResponses",id),
-{
-group:group
+  loadData();
 }
-);
 
-loadData();
+window.resetStatus = async function(){
+  if(!confirm("全員の参加可否を未回答に戻しますか？")){
+    return;
+  }
 
+  for(const member of allData){
+    await updateDoc(
+      doc(db,"svsResponses",member.id),
+      {
+        status:"未回答"
+      }
+    );
+  }
+
+  alert("参加可否をリセットしました");
+
+  loadData();
 }
 
 window.removePlayer = async function(id){
+  if(!confirm("削除しますか？")) return;
 
-if(!confirm("削除しますか？"))
-return;
+  await deleteDoc(doc(db,"svsResponses",id));
 
-await deleteDoc(
-doc(db,"svsResponses",id)
-);
+  loadData();
+}
 
-loadData();
+window.searchPlayer = function(){
+  const keyword =
+    document.getElementById("searchName")
+    .value
+    .trim()
+    .toLowerCase();
+
+  if(!keyword){
+    alert("名前を入力してください");
+    return;
+  }
+
+  const result =
+    allData.filter(x =>
+      (x.playerName || "")
+      .toLowerCase()
+      .includes(keyword)
+    );
+
+  renderPlayers(result,"searchResult");
+}
+
+window.clearSearch = function(){
+  document.getElementById("searchName").value = "";
+  document.getElementById("searchResult").innerHTML = "";
+}
+
+function nameText(list){
+
+  if(list.length === 0){
+    return "-";
+  }
+
+  return list.map(x => {
+
+    const mark =
+      x.status === "条件付き参加"
+      ? "⚠"
+      : "";
+
+    return mark + (x.playerName || "-");
+
+  }).join("、");
 
 }
 
 function renderAll(){
+  const activePlayers =
+    allData.filter(x =>
+      x.status === "参加" ||
+      x.status === "条件付き参加"
+    );
 
-const allFC3 =
-allData.filter(
-x => getLowestTier(x)==="FC3"
-);
+  const activeFC3 = activePlayers.filter(x => getLowestTier(x)==="FC3");
+  const activeFC2 = activePlayers.filter(x => getLowestTier(x)==="FC2");
+  const activeFC1 = activePlayers.filter(x => getLowestTier(x)==="FC1");
+  const activeT10 = activePlayers.filter(x => getLowestTier(x)==="T10");
+  const activeT9 = activePlayers.filter(x => getLowestTier(x)==="T9");
 
-const allFC2 =
-allData.filter(
-x => getLowestTier(x)==="FC2"
-);
+  const allFC3 = allData.filter(x => getLowestTier(x)==="FC3");
+  const allFC2 = allData.filter(x => getLowestTier(x)==="FC2");
+  const allFC1 = allData.filter(x => getLowestTier(x)==="FC1");
+  const allT10 = allData.filter(x => getLowestTier(x)==="T10");
+  const allT9 = allData.filter(x => getLowestTier(x)==="T9");
 
-const allFC1 =
-allData.filter(
-x => getLowestTier(x)==="FC1"
-);
+  const mainA = allData.filter(x => x.group==="本戦A");
+  const mainB = allData.filter(x => x.group==="本戦B");
+  const support1 = allData.filter(x => x.group==="支援1");
+  const support2 = allData.filter(x => x.group==="支援2");
+  const waiting = allData.filter(x => x.group==="待機");
 
-const allT10 =
-allData.filter(
-x => getLowestTier(x)==="T10"
-);
+  document.getElementById("joinCount").textContent =
+    "参加人数：" + activePlayers.length + "人";
 
-const mainA =
-allData.filter(
-x => x.group==="本戦A"
-);
+  document.getElementById("fc3Count").textContent =
+    "FC3：" + activeFC3.length + "人";
+  document.getElementById("fc3Names").textContent =
+    nameText(activeFC3);
 
-const mainB =
-allData.filter(
-x => x.group==="本戦B"
-);
+  document.getElementById("fc2Count").textContent =
+    "FC2：" + activeFC2.length + "人";
+  document.getElementById("fc2Names").textContent =
+    nameText(activeFC2);
 
-const support1 =
-allData.filter(
-x => x.group==="支援1"
-);
+  document.getElementById("fc1Count").textContent =
+    "FC1：" + activeFC1.length + "人";
+  document.getElementById("fc1Names").textContent =
+    nameText(activeFC1);
 
-const support2 =
-allData.filter(
-x => x.group==="支援2"
-);
+  document.getElementById("t10Count").textContent =
+    "T10：" + activeT10.length + "人";
+  document.getElementById("t10Names").textContent =
+    nameText(activeT10);
 
-const waiting =
-allData.filter(
-x => x.group==="待機"
-);
+  document.getElementById("t9Count").textContent =
+    "T9：" + activeT9.length + "人";
+  document.getElementById("t9Names").textContent =
+    nameText(activeT9);
 
-renderPlayers(allFC3,"allFC3");
+  renderPlayers(allFC3,"allFC3");
+  renderPlayers(allFC2,"allFC2");
+  renderPlayers(allFC1,"allFC1");
+  renderPlayers(allT10,"allT10");
+  renderPlayers(allT9,"allT9");
 
-renderPlayers(allFC2,"allFC2");
-
-renderPlayers(allFC1,"allFC1");
-
-renderPlayers(allT10,"allT10");
-
-renderPlayers(mainA,"mainA");
-
-renderPlayers(mainB,"mainB");
-
-renderPlayers(support1,"support1");
-
-renderPlayers(support2,"support2");
-
-renderPlayers(waiting,"waiting");
-
+  renderPlayers(mainA,"mainA");
+  renderPlayers(mainB,"mainB");
+  renderPlayers(support1,"support1");
+  renderPlayers(support2,"support2");
+  renderPlayers(waiting,"waiting");
 }
 
 loadData();
-
 </script>
 
 </body>
