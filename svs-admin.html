@@ -372,7 +372,7 @@ function nameText(list){
   return list.map(x => {
 
     const mark =
-      x.status === "条件付き参加"
+      x.status === "途中参加"
       ? "⚠"
       : "";
 
@@ -386,7 +386,7 @@ function renderAll(){
   const activePlayers =
     allData.filter(x =>
       x.status === "参加" ||
-      x.status === "条件付き参加"
+      x.status === "途中参加"
     );
 
   const activeFC3 = activePlayers.filter(x => getLowestTier(x)==="FC3");
