@@ -1,35 +1,139 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SVSポータル</title>
 <link rel="stylesheet" href="style.css">
+
+<style>
+body{
+  margin:0;
+  background:#071a2d;
+  color:white;
+  font-family:sans-serif;
+  padding:20px;
+}
+
+h1{
+  text-align:center;
+  color:#00d4ff;
+  margin:25px 0;
+}
+
+.nav{
+  max-width:900px;
+  margin:0 auto 25px auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+
+.nav button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:#00d4ff;
+  color:#000;
+  font-weight:bold;
+  font-size:15px;
+  cursor:pointer;
+}
+
+.nav button:hover{
+  opacity:0.85;
+}
+
+.logout-btn{
+  background:#dc2626 !important;
+  color:white !important;
+}
+
+.card{
+  max-width:900px;
+  margin:18px auto;
+  background:#132b45;
+  padding:22px;
+  border-radius:14px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.25);
+}
+
+.card h2{
+  color:#00d4ff;
+  margin-top:0;
+}
+
+.card p{
+  color:#ddd;
+  line-height:1.7;
+}
+
+.login-status{
+  max-width:900px;
+  margin:0 auto 15px auto;
+  text-align:right;
+  color:#ddd;
+  font-size:14px;
+}
+
+@media(max-width:600px){
+  body{
+    padding:14px;
+  }
+
+  .nav{
+    grid-template-columns:1fr;
+  }
+
+  h1{
+    font-size:24px;
+  }
+}
+</style>
 </head>
 
 <body>
+
+<div class="login-status" id="loginStatus"></div>
 
 <div class="nav">
   <button onclick="location.href='svs-form.html'">
     📝 SVS参加アンケ
   </button>
 
-<button onclick="location.href='fort-form.html'">
-  🏰 砦参加回答
+  <button onclick="location.href='fort-form.html'">
+    🏰 砦参加回答
   </button>
 
-<button onclick="location.href='rally-form.html'">
+  <button onclick="location.href='rally-form.html'">
     ⚔ 集結情報回答
   </button>
 
   <button onclick="location.href='total-admin.html'">
-  👑 統括管理
-</button>
+    👑 統括管理
+  </button>
 
-<button onclick="location.href='box-admin.html'">
-  📦 王国箱管理
-</button>
+  <button onclick="location.href='box-admin.html'">
+    📦 王国箱管理
+  </button>
 
-<button onclick="logoutDiscord()">🚪 ログアウト</button>
+  <button id="logoutBtn" class="logout-btn" onclick="logoutDiscord()" style="display:none;">
+    🚪 ログアウト
+  </button>
+</div>
+
+<h1>🔥 SVS統括ポータル</h1>
+
+<div class="card">
+  <h2>⚔ 本戦管理</h2>
+  <p>参加確認・Tier管理・振り分けを行います。</p>
+</div>
+
+<div class="card">
+  <h2>🛡 支援管理</h2>
+  <p>支援配置・同盟状況確認を行います。</p>
+</div>
 
 <script>
 function logoutDiscord(){
@@ -41,21 +145,23 @@ function logoutDiscord(){
   alert("ログアウトしました");
   location.href = "index.html";
 }
+
+function showLoginStatus(){
+  const userId = localStorage.getItem("discord_user_id");
+  const username = localStorage.getItem("discord_username");
+
+  if(userId){
+    document.getElementById("logoutBtn").style.display = "block";
+    document.getElementById("loginStatus").textContent =
+      "ログイン中：" + (username || userId);
+  }else{
+    document.getElementById("logoutBtn").style.display = "none";
+    document.getElementById("loginStatus").textContent = "";
+  }
+}
+
+showLoginStatus();
 </script>
-
-</div>
-
-<h1>🔥 SVS統括ポータル</h1>
-
-<div class="card">
-  <h2>⚔ 本戦管理</h2>
-  <p>参加確認・Tier管理・振り分け</p>
-</div>
-
-<div class="card">
-  <h2>🛡 支援管理</h2>
-  <p>支援配置・同盟状況確認</p>
-</div>
 
 </body>
 </html>
