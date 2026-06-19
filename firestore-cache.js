@@ -3,7 +3,7 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-export async function getCachedCollection(db, collectionName, cacheTimeMs = 300000){
+export async function getCachedCollection(db, collectionName, cacheTimeMs = 600000){
   const cacheKey = "cache_" + collectionName;
   const timeKey = "cache_time_" + collectionName;
 
