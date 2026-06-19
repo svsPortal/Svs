@@ -1,18 +1,3 @@
-from pathlib import Path
-
-js = r'''/*
-  auth.js
-  Discordログイン済み・許可ユーザー確認用
-
-  使うページ：
-  - svs-admin.html
-  - rally-admin.html
-  - box-admin.html
-
-  HTMLの<head>または<body>の上の方に追加：
-  <script src="auth.js"></script>
-*/
-
 const ALLOWED_DISCORD_USERS = [
   "984961103954055208"
 ];
