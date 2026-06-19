@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discordログイン</title>
+
+<style>
+body{
+  margin:0;
+  background:#071a2d;
+  color:white;
+  font-family:sans-serif;
+  padding:20px;
+}
+
+h1,h2{
+  color:#00d4ff;
+  text-align:center;
+}
+
+.card{
+  max-width:520px;
+  margin:40px auto;
+  background:#132b45;
+  padding:25px;
+  border-radius:14px;
+  text-align:center;
+}
+
+a.login-btn{
+  display:block;
+  width:100%;
+  padding:14px;
+  margin-top:15px;
+  border-radius:10px;
+  box-sizing:border-box;
+  background:#5865F2;
+  color:white;
+  font-weight:bold;
+  text-decoration:none;
+}
+
+a.top-btn{
+  display:block;
+  width:100%;
+  padding:12px;
+  margin-top:12px;
+  border-radius:10px;
+  box-sizing:border-box;
+  background:#00d4ff;
+  color:black;
+  font-weight:bold;
+  text-decoration:none;
+}
+
+.notice{
+  margin-top:15px;
+  color:#ddd;
+  font-size:14px;
+  line-height:1.7;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🔐 管理ページログイン</h1>
+
+<div class="card">
+  <h2>Discordでログイン</h2>
+
+  <p class="notice">
+    SVS管理・集結管理・王国箱管理は、許可されたDiscordアカウントのみ利用できます。
+  </p>
+
+  <a class="login-btn" href="https://discord.com/oauth2/authorize?client_id=1517483996622225549&response_type=token&redirect_uri=https%3A%2F%2Fsvsportal.github.io%2Fsvs-portal%2Fauth-callback.html&scope=identify">
+    Discordでログイン
+  </a>
+
+  <a class="top-btn" href="index.html">
+    TOPへ戻る
+  </a>
+
+  <p class="notice">
+    ※ログイン後、権限確認ページへ移動します。
+  </p>
+</div>
+
+<script>
+const token = localStorage.getItem("discord_access_token");
+const userId = localStorage.getItem("discord_user_id");
+
+if(token && userId){
+  const nextPage = sessionStorage.getItem("nextPage") || "box-admin.html";
+  location.href = nextPage;
+}
+</script>
+
+</body>
+</html>
