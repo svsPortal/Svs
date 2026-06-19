@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>集結情報 管理ページ</title>
 
-<script src="auth.js"></script>
-
 <style>
 body{margin:0;background:#071a2d;color:white;font-family:sans-serif;padding:20px;}
 h1,h2,h3{color:#00d4ff;text-align:center;}
@@ -47,6 +45,12 @@ hr{border:0;border-top:1px solid #35516c;margin:10px 0;}
   <p id="petCount">ペット登録者：0人</p>
   <p id="snowLeopardCount">雪豹登録者：0人</p>
   <p id="birdCount">巨鳥登録者：0人</p>
+</div>
+
+<div class="summary">
+  <h2>🔄 データ更新</h2>
+  <p id="cacheInfo" class="small">最終取得：未取得</p>
+  <button class="search-btn" onclick="loadData(true)">最新データを再取得</button>
 </div>
 
 <div class="summary">
@@ -150,11 +154,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 
 import {
   getFirestore,
-  collection,
-  getDocs,
   doc,
   deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+import { getCachedCollection, clearFirestoreCache, getCacheAgeText } from "./firestore-cache.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD826LkOY5iKXH04agBlc9IPHpeBO4C6uM",
@@ -172,19 +176,19 @@ const db = getFirestore(app);
 
 let allData = [];
 
-async function loadData(){
-  const snapshot = await getDocs(collection(db,"rallyResponses"));
+async function loadData(forceReload=false){
+  if(forceReload){
+    clearFirestoreCache("rallyResponses");
+  }
 
-  allData = [];
-
-  snapshot.forEach(d=>{
-    allData.push({
-      id:d.id,
-      ...d.data()
-    });
-  });
+  allData = await getCachedCollection(db, "rallyResponses", 300000);
 
   renderAll();
+
+  const cacheInfo = document.getElementById("cacheInfo");
+  if(cacheInfo){
+    cacheInfo.textContent = "最終取得：" + getCacheAgeText("rallyResponses");
+  }
 }
 
 function skillText3(a,b,c){
@@ -480,7 +484,8 @@ window.removePlayer = async function(id){
     doc(db,"rallyResponses",id)
   );
 
-  loadData();
+  clearFirestoreCache("rallyResponses");
+  loadData(true);
 }
 
 loadData();

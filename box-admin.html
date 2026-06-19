@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head> <meta charset="UTF-8"> 
-<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>王国箱 振り分け管理</title>
-
-<script src="auth.js"></script>
 
 <style>
 body{margin:0;background:#071a2d;color:white;font-family:sans-serif;padding:20px;}
@@ -41,6 +40,12 @@ hr{border:0;border-top:1px solid #35516c;margin:10px 0;}
 </div>
 
 <h1>📦 王国箱 振り分け管理</h1>
+
+<div class="filter">
+  <h2>🔄 データ更新</h2>
+  <p id="cacheInfo" class="small">SVS：未取得 / 集結：未取得</p>
+  <button onclick="loadData(true)">最新データを再取得</button>
+</div>
 
 <div class="filter">
   <h2>絞り込み</h2>
@@ -167,11 +172,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 
 import {
   getFirestore,
-  collection,
-  getDocs,
   doc,
   updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+import { getCachedCollection, clearFirestoreCache, getCacheAgeText } from "./firestore-cache.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD826LkOY5iKXH04agBlc9IPHpeBO4C6uM",
@@ -198,28 +203,34 @@ const BOXES = [
   "王国5箱"
 ];
 
-async function loadData(){
+window.loadData = loadData;
+
+async function loadData(forceReload=false){
   svsData = [];
   rallyMap = {};
 
-  const svsSnap = await getDocs(collection(db,"svsResponses"));
-  const rallySnap = await getDocs(collection(db,"rallyResponses"));
+  if(forceReload){
+    clearFirestoreCache("svsResponses");
+    clearFirestoreCache("rallyResponses");
+  }
 
-  svsSnap.forEach(d=>{
-    svsData.push({
-      id:d.id,
-      ...d.data()
-    });
-  });
+  svsData = await getCachedCollection(db, "svsResponses", 300000);
+  const rallyData = await getCachedCollection(db, "rallyResponses", 300000);
 
-  rallySnap.forEach(d=>{
-    const data = d.data();
-    const name = data.playerName || d.id;
+  rallyData.forEach(data=>{
+    const name = data.playerName || data.id;
     rallyMap[name] = data;
   });
 
   applyFilters();
   renderBoxSummary();
+
+  const cacheInfo = document.getElementById("cacheInfo");
+  if(cacheInfo){
+    cacheInfo.textContent =
+      "SVS：" + getCacheAgeText("svsResponses") +
+      " / 集結：" + getCacheAgeText("rallyResponses");
+  }
 }
 
 function getRally(p){
@@ -548,6 +559,8 @@ window.changeBox = async function(id, value){
     }
   );
 
+  clearFirestoreCache("svsResponses");
+
   const target = svsData.find(x => x.id === id);
   if(target){
     target.kingdomBox = value;
@@ -582,6 +595,8 @@ window.bulkMove = async function(){
       target.kingdomBox = box;
     }
   }
+
+  clearFirestoreCache("svsResponses");
 
   selectedIds.clear();
   document.getElementById("selectedCount").textContent = "選択中：0人";

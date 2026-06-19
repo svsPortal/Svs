@@ -4,9 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SVS管理画面</title>
-
-<script src="auth.js"></script>
-
 <style>
 body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#111827;color:#f9fafb;}
 header{padding:18px;background:#1f2937;border-bottom:1px solid #374151;}
@@ -103,7 +100,8 @@ textarea{width:100%;min-height:120px;border-radius:10px;background:#111827;color
     <button onclick="copyVisibleNames()">表示中の名前コピー</button>
     <button class="danger" onclick="resetParticipation()">参加可否リセット</button>
   </div>
-  <p class="small">※ 削除と参加可否リセットはパスワード確認あり。</p>
+  <p class="small">※ 削除と参加可否リセットはパスワード確認あり。通常は5分キャッシュで読み取り回数を節約します。</p>
+  <p id="cacheInfo" class="small">最終取得：未取得</p>
 </section>
 
 <section class="card">
@@ -131,7 +129,8 @@ textarea{width:100%;min-height:120px;border-radius:10px;background:#111827;color
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getCachedCollection, clearFirestoreCache, getCacheAgeText } from "./firestore-cache.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD826LkOY5iKXH04agBlc9IPHpeBO4C6uM",
@@ -151,7 +150,7 @@ const db = getFirestore(app);
 let allPlayers = [];
 let currentStatusFilter = "all";
 
-window.loadData = loadData;
+window.loadData = () => loadData(true);
 window.setStatusFilter = setStatusFilter;
 window.copyVisibleNames = copyVisibleNames;
 window.deletePlayer = deletePlayer;
@@ -219,11 +218,20 @@ function checkAdminPassword(){
   return true;
 }
 
-async function loadData(){
-  const snapshot=await getDocs(collection(db,COLLECTION_NAME));
-  allPlayers=snapshot.docs.map(d=>({id:d.id,...d.data()}));
+async function loadData(forceReload=false){
+  if(forceReload){
+    clearFirestoreCache(COLLECTION_NAME);
+  }
+
+  allPlayers = await getCachedCollection(db, COLLECTION_NAME, 300000);
+
   buildAllianceFilter();
   render();
+
+  const cacheInfo = document.getElementById("cacheInfo");
+  if(cacheInfo){
+    cacheInfo.textContent = "最終取得：" + getCacheAgeText(COLLECTION_NAME);
+  }
 }
 
 function buildAllianceFilter(){
@@ -394,8 +402,9 @@ async function deletePlayer(id){
   if(!checkAdminPassword()) return;
   if(!confirm("この回答を削除します。よろしいですか？")) return;
   await deleteDoc(doc(db,COLLECTION_NAME,id));
+  clearFirestoreCache(COLLECTION_NAME);
   alert("削除しました");
-  await loadData();
+  await loadData(true);
 }
 
 async function resetParticipation(){
@@ -412,8 +421,9 @@ async function resetParticipation(){
     });
   }
 
+  clearFirestoreCache(COLLECTION_NAME);
   alert(`参加可否をリセットしました：${targets.length}件`);
-  await loadData();
+  await loadData(true);
 }
 
 function escapeHtml(value){
