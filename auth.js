@@ -55,8 +55,3 @@ function logoutDiscord(){
 
   location.href = "login.html";
 }
-'''
-
-path = Path('/mnt/data/auth.js')
-path.write_text(js, encoding='utf-8')
-print(path)
