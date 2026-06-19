@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>王国箱 振り分け管理</title>
+
+<style>
+body{margin:0;background:#071a2d;color:white;font-family:sans-serif;padding:20px;}
+h1,h2,h3{color:#00d4ff;text-align:center;}
+.box,.filter,.summary{max-width:1100px;margin:20px auto;background:#132b45;padding:20px;border-radius:12px;}
+.filter-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:10px 0;}
+label{background:#173754;padding:8px 12px;border-radius:8px;}
+input,select,button{padding:10px;margin-top:8px;border:none;border-radius:8px;box-sizing:border-box;}
+input[type="text"],select{width:100%;}
+button{background:#00d4ff;color:black;font-weight:bold;cursor:pointer;width:100%;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:15px;}
+.card{background:#173754;padding:15px;border-radius:12px;}
+.card h3{margin-top:0;color:#00d4ff;}
+.bulk{background:#ffaa00;color:black;}
+.full{color:#ff6666;font-weight:bold;}
+.ok{color:#66ff99;}
+.warn{color:#ffdd55;font-weight:bold;}
+.box-list{background:#173754;padding:12px;border-radius:10px;margin-top:10px;line-height:1.8;}
+.top-buttons{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
+.top-buttons a{background:#00d4ff;color:black;padding:10px 15px;border-radius:10px;text-decoration:none;font-weight:bold;}
+details{background:#10263d;padding:10px;border-radius:10px;margin-top:10px;}
+summary{cursor:pointer;color:#00d4ff;font-weight:bold;}
+hr{border:0;border-top:1px solid #35516c;margin:10px 0;}
+.small{font-size:13px;color:#ddd;}
+</style>
+</head>
+
+<body>
+
+<div class="top-buttons">
+  <a href="index.html">🏠 TOP</a>
+  <a href="svs-admin.html">⚔ SVS管理</a>
+  <a href="rally-admin.html">🔥 集結管理</a>
+</div>
+
+<h1>📦 王国箱 振り分け管理</h1>
+
+<div class="filter">
+  <h2>絞り込み</h2>
+
+  <h3>同盟</h3>
+  <div class="filter-row" id="allianceFilters">
+    <label><input type="checkbox" value="TKN" checked> TKN</label>
+    <label><input type="checkbox" value="AAA" checked> AAA</label>
+    <label><input type="checkbox" value="xox" checked> xox</label>
+    <label><input type="checkbox" value="HWS" checked> HWS</label>
+    <label><input type="checkbox" value="TKG" checked> TKG</label>
+    <label><input type="checkbox" value="ACG" checked> ACG</label>
+    <label><input type="checkbox" value="ICE" checked> ICE</label>
+  </div>
+
+  <h3>Tier</h3>
+  <div class="filter-row" id="tierFilters">
+    <label><input type="checkbox" value="FC3" checked> FC3</label>
+    <label><input type="checkbox" value="FC2" checked> FC2</label>
+    <label><input type="checkbox" value="FC1" checked> FC1</label>
+    <label><input type="checkbox" value="T10" checked> T10</label>
+    <label><input type="checkbox" value="T9" checked> T9</label>
+  </div>
+
+  <h3>参加状態</h3>
+  <div class="filter-row" id="statusFilters">
+    <label><input type="checkbox" value="参加" checked> 参加</label>
+    <label><input type="checkbox" value="途中参加" checked> 途中参加</label>
+  </div>
+
+  <h3>集結・英雄条件</h3>
+  <div class="filter-row">
+    <label><input type="checkbox" id="filterCanRally"> 集結主可能</label>
+    <label><input type="checkbox" id="filterLogan555"> ローガン555</label>
+    <label><input type="checkbox" id="filterLoganWeapon10"> ローガン専用10</label>
+    <label><input type="checkbox" id="filterGreg555"> グレッグ555</label>
+    <label><input type="checkbox" id="filterGregWeapon10"> グレッグ専用10</label>
+    <label><input type="checkbox" id="filterJeronimo555"> ジェロニモ555</label>
+    <label><input type="checkbox" id="filterJeronimoWeapon10"> ジェロニモ専用10</label>
+    <label><input type="checkbox" id="filterJessie5"> ジェシー5</label>
+    <label><input type="checkbox" id="filterPatrick5"> パトリック5</label>
+    <label><input type="checkbox" id="filterSoyoon5"> ソユン5</label>
+    <label><input type="checkbox" id="filterRinsetsu5"> リンセツ5</label>
+  </div>
+
+  <h3>ペット条件</h3>
+  <div class="filter-row">
+    <label><input type="checkbox" id="filterHasPet"> ペット登録あり</label>
+    <label><input type="checkbox" id="filterPetLv10"> 戦闘スキルLv10あり</label>
+  </div>
+
+  <select id="petNameFilter" onchange="applyFilters()">
+    <option value="">ペット名指定なし</option>
+    <option value="雪豹">雪豹</option>
+    <option value="巨鳥">巨鳥</option>
+  </select>
+
+  <select id="petSkillFilter" onchange="applyFilters()">
+    <option value="">ペット戦闘スキルLv指定なし</option>
+    <option value="1">Lv1以上</option>
+    <option value="2">Lv2以上</option>
+    <option value="3">Lv3以上</option>
+    <option value="4">Lv4以上</option>
+    <option value="5">Lv5以上</option>
+    <option value="6">Lv6以上</option>
+    <option value="7">Lv7以上</option>
+    <option value="8">Lv8以上</option>
+    <option value="9">Lv9以上</option>
+    <option value="10">Lv10以上</option>
+  </select>
+
+  <h3>箱状態</h3>
+  <div class="filter-row" id="boxFilters">
+    <label><input type="checkbox" value="未振り分け" checked> 未振り分け</label>
+    <label><input type="checkbox" value="王国1箱" checked> 王国1箱</label>
+    <label><input type="checkbox" value="王国2箱" checked> 王国2箱</label>
+    <label><input type="checkbox" value="王国3箱" checked> 王国3箱</label>
+    <label><input type="checkbox" value="王国4箱" checked> 王国4箱</label>
+    <label><input type="checkbox" value="王国5箱" checked> 王国5箱</label>
+  </div>
+
+  <h3>並び替え</h3>
+  <select id="sortType" onchange="applyFilters()">
+    <option value="capacityDesc">集結容量 大きい順</option>
+    <option value="capacityAsc">集結容量 小さい順</option>
+    <option value="tier">Tier順</option>
+    <option value="alliance">同盟順</option>
+    <option value="name">名前順</option>
+  </select>
+
+  <h3>名前検索</h3>
+  <input id="searchName" type="text" placeholder="一部一致で検索">
+
+  <button onclick="applyFilters()">絞り込み適用</button>
+  <button onclick="resetFilters()">絞り込みリセット</button>
+</div>
+
+<div class="summary">
+  <h2>一括移動</h2>
+  <select id="bulkBox">
+    <option value="未振り分け">未振り分け</option>
+    <option value="王国1箱">王国1箱</option>
+    <option value="王国2箱">王国2箱</option>
+    <option value="王国3箱">王国3箱</option>
+    <option value="王国4箱">王国4箱</option>
+    <option value="王国5箱">王国5箱</option>
+  </select>
+  <button class="bulk" onclick="bulkMove()">選択者を一括移動</button>
+  <p id="selectedCount">選択中：0人</p>
+</div>
+
+<div class="box">
+  <h2 id="resultTitle">検索結果：0人</h2>
+  <div class="grid" id="resultArea"></div>
+</div>
+
+<div class="box">
+  <h2>📦 王国箱一覧</h2>
+  <div id="boxSummary"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  updateDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD826LkOY5iKXH04agBlc9IPHpeBO4C6uM",
+  authDomain: "svsv-54551.firebaseapp.com",
+  projectId: "svsv-54551",
+  storageBucket: "svsv-54551.firebasestorage.app",
+  messagingSenderId: "948158589591",
+  appId: "1:948158589591:web:53b3a4430d0629492597d2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let svsData = [];
+let rallyMap = {};
+let selectedIds = new Set();
+
+const BOXES = [
+  "未振り分け",
+  "王国1箱",
+  "王国2箱",
+  "王国3箱",
+  "王国4箱",
+  "王国5箱"
+];
+
+async function loadData(){
+  svsData = [];
+  rallyMap = {};
+
+  const svsSnap = await getDocs(collection(db,"svsResponses"));
+  const rallySnap = await getDocs(collection(db,"rallyResponses"));
+
+  svsSnap.forEach(d=>{
+    svsData.push({
+      id:d.id,
+      ...d.data()
+    });
+  });
+
+  rallySnap.forEach(d=>{
+    const data = d.data();
+    const name = data.playerName || d.id;
+    rallyMap[name] = data;
+  });
+
+  applyFilters();
+  renderBoxSummary();
+}
+
+function getRally(p){
+  return rallyMap[p.playerName] || {};
+}
+
+function petsList(p){
+  const rally = getRally(p);
+  return Array.isArray(rally.pets) ? rally.pets : [];
+}
+
+function getRallyCapacity(p){
+  const rally = getRally(p);
+  return Number(rally.rallyCapacity || 0);
+}
+
+function getTierValue(p,type){
+  if(p[`fc3${type}`]) return 3;
+  if(p[`fc2${type}`]) return 2;
+  if(p[`fc1${type}`]) return 1;
+  if(p[`t10${type}`]) return 0;
+  if(p[`t9${type}`]) return -1;
+  return -2;
+}
+
+function getLowestTier(p){
+  const minTier = Math.min(
+    getTierValue(p,"Shield"),
+    getTierValue(p,"Spear"),
+    getTierValue(p,"Archer")
+  );
+
+  if(minTier === 3) return "FC3";
+  if(minTier === 2) return "FC2";
+  if(minTier === 1) return "FC1";
+  if(minTier === 0) return "T10";
+  if(minTier === -1) return "T9";
+  return "未分類";
+}
+
+function tierRank(tier){
+  if(tier === "FC3") return 5;
+  if(tier === "FC2") return 4;
+  if(tier === "FC1") return 3;
+  if(tier === "T10") return 2;
+  if(tier === "T9") return 1;
+  return 0;
+}
+
+function checkedValues(parentId){
+  return [...document.querySelectorAll(`#${parentId} input:checked`)]
+    .map(x => x.value);
+}
+
+function is555(a,b,c){
+  return Number(a) === 5 && Number(b) === 5 && Number(c) === 5;
+}
+
+function is5(a){
+  return Number(a) === 5;
+}
+
+function hasPetSkillAtLeast(p, level){
+  return petsList(p).some(pet => Number(pet.skillLevel || 0) >= level);
+}
+
+function hasPetName(p, name){
+  return petsList(p).some(pet => pet.name === name);
+}
+
+function petSummary(p){
+  const pets = petsList(p);
+
+  if(pets.length === 0){
+    return "ペット登録なし";
+  }
+
+  return pets.map(pet=>
+    `${pet.name || "-"} Lv${pet.skillLevel || 0}`
+  ).join("、");
+}
+
+function hasRallyCondition(p){
+  const rally = getRally(p);
+
+  if(document.getElementById("filterCanRally").checked &&
+     rally.canRally !== "可能"){
+    return false;
+  }
+
+  if(document.getElementById("filterLogan555").checked &&
+     !is555(rally.loganSkill1,rally.loganSkill2,rally.loganSkill3)){
+    return false;
+  }
+
+  if(document.getElementById("filterLoganWeapon10").checked &&
+     Number(rally.loganWeapon || 0) < 10){
+    return false;
+  }
+
+  if(document.getElementById("filterGreg555").checked &&
+     !is555(rally.gregSkill1,rally.gregSkill2,rally.gregSkill3)){
+    return false;
+  }
+
+  if(document.getElementById("filterGregWeapon10").checked &&
+     Number(rally.gregWeapon || 0) < 10){
+    return false;
+  }
+
+  if(document.getElementById("filterJeronimo555").checked &&
+     !is555(rally.jeronimoSkill1,rally.jeronimoSkill2,rally.jeronimoSkill3)){
+    return false;
+  }
+
+  if(document.getElementById("filterJeronimoWeapon10").checked &&
+     Number(rally.jeronimoWeapon || 0) < 10){
+    return false;
+  }
+
+  if(document.getElementById("filterJessie5").checked &&
+     !is5(rally.jessieSkill1)){
+    return false;
+  }
+
+  if(document.getElementById("filterPatrick5").checked &&
+     !is5(rally.patrickSkill1)){
+    return false;
+  }
+
+  if(document.getElementById("filterSoyoon5").checked &&
+     !is5(rally.soyoonSkill1)){
+    return false;
+  }
+
+  if(document.getElementById("filterRinsetsu5").checked &&
+     !is5(rally.rinsetsuSkill1)){
+    return false;
+  }
+
+  if(document.getElementById("filterHasPet").checked &&
+     petsList(p).length === 0){
+    return false;
+  }
+
+  if(document.getElementById("filterPetLv10").checked &&
+     !hasPetSkillAtLeast(p,10)){
+    return false;
+  }
+
+  const petName =
+    document.getElementById("petNameFilter").value;
+
+  if(petName && !hasPetName(p,petName)){
+    return false;
+  }
+
+  const petSkill =
+    Number(document.getElementById("petSkillFilter").value || 0);
+
+  if(petSkill > 0 && !hasPetSkillAtLeast(p,petSkill)){
+    return false;
+  }
+
+  return true;
+}
+
+function sortResult(list){
+  const sortType = document.getElementById("sortType").value;
+
+  list.sort((a,b)=>{
+    if(sortType === "capacityDesc"){
+      return getRallyCapacity(b) - getRallyCapacity(a);
+    }
+
+    if(sortType === "capacityAsc"){
+      return getRallyCapacity(a) - getRallyCapacity(b);
+    }
+
+    if(sortType === "tier"){
+      return tierRank(getLowestTier(b)) - tierRank(getLowestTier(a));
+    }
+
+    if(sortType === "alliance"){
+      return (a.alliance || "").localeCompare(b.alliance || "","ja");
+    }
+
+    if(sortType === "name"){
+      return (a.playerName || "").localeCompare(b.playerName || "","ja");
+    }
+
+    return 0;
+  });
+
+  return list;
+}
+
+window.applyFilters = function(){
+  const alliances = checkedValues("allianceFilters");
+  const tiers = checkedValues("tierFilters");
+  const statuses = checkedValues("statusFilters");
+  const boxes = checkedValues("boxFilters");
+  const keyword = document.getElementById("searchName").value.trim().toLowerCase();
+
+  let result = svsData.filter(p=>{
+    const alliance = p.alliance || "";
+    const tier = getLowestTier(p);
+    const status = p.status || "";
+    const box = p.kingdomBox || "未振り分け";
+    const name = (p.playerName || "").toLowerCase();
+
+    if(!alliances.includes(alliance)) return false;
+    if(!tiers.includes(tier)) return false;
+    if(!statuses.includes(status)) return false;
+    if(!boxes.includes(box)) return false;
+    if(keyword && !name.includes(keyword)) return false;
+    if(!hasRallyCondition(p)) return false;
+
+    return true;
+  });
+
+  result = sortResult(result);
+
+  renderResults(result);
+}
+
+window.resetFilters = function(){
+  document.querySelectorAll("#allianceFilters input,#tierFilters input,#statusFilters input,#boxFilters input").forEach(x=>{
+    x.checked = true;
+  });
+
+  document.querySelectorAll(".filter input[id^='filter']").forEach(x=>{
+    x.checked = false;
+  });
+
+  document.getElementById("petNameFilter").value = "";
+  document.getElementById("petSkillFilter").value = "";
+  document.getElementById("searchName").value = "";
+  document.getElementById("sortType").value = "capacityDesc";
+
+  applyFilters();
+}
+
+function renderResults(list){
+  document.getElementById("resultTitle").textContent =
+    "検索結果：" + list.length + "人";
+
+  const div = document.getElementById("resultArea");
+
+  if(list.length === 0){
+    div.innerHTML = "<p>該当なし</p>";
+    return;
+  }
+
+  div.innerHTML = list.map(p => playerCard(p)).join("");
+}
+
+function playerCard(p){
+  const rally = getRally(p);
+  const box = p.kingdomBox || "未振り分け";
+  const tier = getLowestTier(p);
+  const mark = p.status === "途中参加" ? "※" : "";
+  const checked = selectedIds.has(p.id) ? "checked" : "";
+
+  return `
+    <div class="card">
+      <label>
+        <input type="checkbox" ${checked} onchange="toggleSelect('${p.id}', this.checked)">
+        選択
+      </label>
+
+      <h3>${mark}${p.playerName || "-"}</h3>
+
+      <p>同盟：${p.alliance || "-"}</p>
+      <p>Tier：${tier}</p>
+      <p>参加：${p.status || "-"}</p>
+      <p>集結容量：${Number(rally.rallyCapacity || 0).toLocaleString()}</p>
+      <p>集結主：${rally.canRally || "-"}</p>
+
+      <p>箱：</p>
+      <select onchange="changeBox('${p.id}', this.value)">
+        ${BOXES.map(b=>`
+          <option value="${b}" ${box===b?"selected":""}>${b}</option>
+        `).join("")}
+      </select>
+
+      <details>
+        <summary>英雄詳細を見る</summary>
+
+        <p>ローガン：${rally.loganSkill1 || 0}-${rally.loganSkill2 || 0}-${rally.loganSkill3 || 0} / 専用${rally.loganWeapon || 0}</p>
+        <p>グレッグ：${rally.gregSkill1 || 0}-${rally.gregSkill2 || 0}-${rally.gregSkill3 || 0} / 専用${rally.gregWeapon || 0}</p>
+        <p>ジェロニモ：${rally.jeronimoSkill1 || 0}-${rally.jeronimoSkill2 || 0}-${rally.jeronimoSkill3 || 0} / 専用${rally.jeronimoWeapon || 0}</p>
+
+        <hr>
+
+        <p>ジェシー：${rally.jessieSkill1 || 0}</p>
+        <p>パトリック：${rally.patrickSkill1 || 0}</p>
+        <p>ソユン：${rally.soyoonSkill1 || 0}</p>
+        <p>リンセツ：${rally.rinsetsuSkill1 || 0}</p>
+      </details>
+
+      <details>
+        <summary>🐾 ペット詳細を見る</summary>
+        <p>${petSummary(p)}</p>
+      </details>
+    </div>
+  `;
+}
+
+window.toggleSelect = function(id, checked){
+  if(checked){
+    selectedIds.add(id);
+  }else{
+    selectedIds.delete(id);
+  }
+
+  document.getElementById("selectedCount").textContent =
+    "選択中：" + selectedIds.size + "人";
+}
+
+window.changeBox = async function(id, value){
+  await updateDoc(
+    doc(db,"svsResponses",id),
+    {
+      kingdomBox:value
+    }
+  );
+
+  const target = svsData.find(x => x.id === id);
+  if(target){
+    target.kingdomBox = value;
+  }
+
+  applyFilters();
+  renderBoxSummary();
+}
+
+window.bulkMove = async function(){
+  if(selectedIds.size === 0){
+    alert("移動する人を選択してください");
+    return;
+  }
+
+  const box = document.getElementById("bulkBox").value;
+
+  if(!confirm(selectedIds.size + "人を " + box + " に移動しますか？")){
+    return;
+  }
+
+  for(const id of selectedIds){
+    await updateDoc(
+      doc(db,"svsResponses",id),
+      {
+        kingdomBox:box
+      }
+    );
+
+    const target = svsData.find(x => x.id === id);
+    if(target){
+      target.kingdomBox = box;
+    }
+  }
+
+  selectedIds.clear();
+  document.getElementById("selectedCount").textContent = "選択中：0人";
+
+  applyFilters();
+  renderBoxSummary();
+
+  alert("一括移動しました");
+}
+
+function renderBoxSummary(){
+  const div = document.getElementById("boxSummary");
+  let html = "";
+
+  BOXES.forEach(box=>{
+    const members = svsData.filter(x =>
+      (x.kingdomBox || "未振り分け") === box
+    );
+
+    const countClass =
+      box !== "未振り分け" && members.length >= 100
+      ? "full"
+      : "ok";
+
+    const totalCapacity =
+      members.reduce((sum,p)=>sum + getRallyCapacity(p),0);
+
+    const canRallyCount =
+      members.filter(p => getRally(p).canRally === "可能").length;
+
+    const petMemberCount =
+      members.filter(p => petsList(p).length > 0).length;
+
+    html += `
+      <div class="box-list">
+        <h3>${box} <span class="${countClass}">(${members.length}${box==="未振り分け" ? "人" : "/100人"})</span></h3>
+        <p>総集結容量：${totalCapacity.toLocaleString()}</p>
+        <p>集結主可能：${canRallyCount}人</p>
+        <p>ペット登録者：${petMemberCount}人</p>
+        <p>
+          ${
+            members.length === 0
+            ? "該当なし"
+            : members.map(x=>{
+                const mark = x.status === "途中参加" ? "※" : "";
+                return `${x.alliance || "-"} ${mark}${x.playerName || "-"}`;
+              }).join("、")
+          }
+        </p>
+      </div>
+    `;
+  });
+
+  div.innerHTML = html;
+}
+
+loadData();
+</script>
+
+</body>
+</html>

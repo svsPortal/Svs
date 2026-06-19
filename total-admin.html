@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>統括管理</title>
+
+<style>
+body{margin:0;background:#071a2d;color:white;font-family:sans-serif;padding:20px;}
+h1,h2{text-align:center;color:#00d4ff;}
+.login,.dash,.menu,.panel{max-width:1100px;margin:20px auto;background:#132b45;padding:20px;border-radius:12px;}
+input,button{width:100%;padding:12px;margin-top:10px;border:none;border-radius:8px;box-sizing:border-box;}
+button{background:#00d4ff;font-weight:bold;cursor:pointer;}
+.menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+.card{background:#173754;padding:15px;border-radius:10px;text-align:center;cursor:pointer;}
+iframe{width:100%;height:800px;border:0;border-radius:12px;background:white;}
+#admin{display:none;}
+#answerNames{background:#173754;padding:15px;border-radius:10px;line-height:1.8;}
+</style>
+</head>
+
+<body>
+
+<div class="login" id="loginBox">
+  <h2>🔒 統括管理ログイン</h2>
+  <input type="password" id="pass" placeholder="パスワード">
+  <button onclick="login()">ログイン</button>
+</div>
+
+<div id="admin">
+
+<h1>🔥 SVS統括管理</h1>
+
+<div class="dash">
+  <h2>📊 ダッシュボード</h2>
+
+  <div class="card-grid">
+
+    <div class="card" onclick="showNames('svs')">
+      <h3 id="svsCount">SVS回答 0</h3>
+    </div>
+
+    <div class="card" onclick="showNames('fort')">
+      <h3 id="fortCount">砦回答 0</h3>
+    </div>
+
+    <div class="card" onclick="showNames('rally')">
+      <h3 id="rallyCount">集結回答 0</h3>
+    </div>
+
+    <div class="card">
+      <h3 id="rallyAble">集結主可能 0</h3>
+    </div>
+
+  </div>
+</div>
+
+<div class="dash">
+  <h2>👥 回答者一覧</h2>
+  <div id="answerNames">
+    回答数カードをクリックしてください
+  </div>
+</div>
+
+<div class="menu">
+  <button onclick="openPage('svs-admin.html')">⚔ SVS管理</button>
+  <button onclick="openPage('fort-admin.html')">🏰 砦管理</button>
+  <button onclick="openPage('rally-admin.html')">🔥 集結管理</button>
+  <button onclick="location.href='member-admin.html'">
+  👥 未回答者管理
+</button>
+  <button onclick="location.href='index.html'">🏠 TOP</button>
+</div>
+
+<div class="panel" id="panel">
+  <h2>表示する管理を選択してください</h2>
+</div>
+
+</div>
+
+<script>
+let svsAnsweredNames = [];
+let fortAnsweredNames = [];
+let rallyAnsweredNames = [];
+
+function login(){
+  if(document.getElementById("pass").value === "1111"){
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("admin").style.display = "block";
+  }else{
+    alert("パスワードが違います");
+  }
+}
+
+function openPage(url){
+  document.getElementById("panel").innerHTML =
+    `<iframe src="${url}"></iframe>`;
+}
+
+function showNames(type){
+  let title = "";
+  let names = [];
+
+  if(type === "svs"){
+    title = "SVS回答者";
+    names = svsAnsweredNames;
+  }
+
+  if(type === "fort"){
+    title = "砦回答者";
+    names = fortAnsweredNames;
+  }
+
+  if(type === "rally"){
+    title = "集結回答者";
+    names = rallyAnsweredNames;
+  }
+
+  document.getElementById("answerNames").innerHTML =
+    `<h3>${title}：${names.length}人</h3>
+     <p>${names.join("、") || "該当なし"}</p>`;
+}
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD826LkOY5iKXH04agBlc9IPHpeBO4C6uM",
+  authDomain: "svsv-54551.firebaseapp.com",
+  projectId: "svsv-54551",
+  storageBucket: "svsv-54551.firebasestorage.app",
+  messagingSenderId: "948158589591",
+  appId: "1:948158589591:web:53b3a4430d0629492597d2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+async function loadCounts(){
+  const svs = await getDocs(collection(db,"svsResponses"));
+  const fort = await getDocs(collection(db,"fortResponses"));
+  const rally = await getDocs(collection(db,"rallyResponses"));
+
+  let svsAnswered = 0;
+  let fortAnswered = 0;
+  let rallyAble = 0;
+
+  svsAnsweredNames = [];
+  fortAnsweredNames = [];
+  rallyAnsweredNames = [];
+
+  svs.forEach(d=>{
+    const data = d.data();
+    const status = data.status;
+
+    if(
+      status === "参加" ||
+      status === "不参加" ||
+      status === "条件付き参加"
+    ){
+      svsAnswered++;
+      svsAnsweredNames.push(data.playerName || d.id);
+    }
+  });
+
+  fort.forEach(d=>{
+    const data = d.data();
+    const status = data.status;
+
+    if(
+      status === "参加" ||
+      status === "不参加" ||
+      status === "条件付き参加"
+    ){
+      fortAnswered++;
+      fortAnsweredNames.push(data.playerName || d.id);
+    }
+  });
+
+  rally.forEach(d=>{
+    const data = d.data();
+
+    rallyAnsweredNames.push(data.playerName || d.id);
+
+    if(data.canRally === "可能"){
+      rallyAble++;
+    }
+  });
+
+  document.getElementById("svsCount").textContent =
+    "SVS回答 " + svsAnswered;
+
+  document.getElementById("fortCount").textContent =
+    "砦回答 " + fortAnswered;
+
+  document.getElementById("rallyCount").textContent =
+    "集結回答 " + rally.size;
+
+  document.getElementById("rallyAble").textContent =
+    "集結主可能 " + rallyAble;
+}
+
+loadCounts();
+</script>
+
+</body>
+</html>

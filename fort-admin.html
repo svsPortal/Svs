@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>砦争奪戦 管理画面</title>
+
+<style>
+body{margin:0;background:#071a2d;color:white;font-family:sans-serif;padding:20px;}
+h1,h2,h3{color:#00d4ff;text-align:center;}
+.control,.summary,.summary-box{max-width:750px;margin:20px auto;background:#132b45;padding:20px;border-radius:12px;}
+input,button,select{width:100%;padding:12px;margin-top:10px;border:none;border-radius:8px;box-sizing:border-box;}
+button{background:#00d4ff;font-weight:bold;cursor:pointer;}
+.section{margin-top:30px;}
+.grid,.player-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:15px;}
+.card{background:#132b45;padding:15px;border-radius:12px;}
+.delete{background:#ff4444;color:white;}
+.time-list{background:#173754;padding:12px;border-radius:10px;margin-top:10px;}
+.time-list p{margin:6px 0;}
+
+.only-one-time{
+  color:#ffdd55;
+  font-weight:bold;
+}
+
+.assigned{
+  color:#999;
+  opacity:0.35;
+}
+
+.only-one-time.assigned{
+  color:#ffdd55;
+  opacity:0.45;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🏰 砦争奪戦 管理画面</h1>
+
+<div class="control">
+  <h2>時間別 部隊数</h2>
+
+  <input id="squad18Count" type="number" placeholder="18時の部隊数 例: 2">
+  <input id="squad22Count" type="number" placeholder="22時の部隊数 例: 3">
+  <input id="squad23Count" type="number" placeholder="23時の部隊数 例: 2">
+
+  <button onclick="autoAssignByTime()">時間ごとに自動振り分け</button>
+  <button onclick="resetAssign()">自動編成リセット</button>
+<button
+  class="delete"
+  onclick="deleteAllResponses()">
+
+  🗑 回答を一括削除
+
+</button>
+  <button onclick="loadData()">再読み込み</button>
+</div>
+
+<div class="summary">
+  <h2>時間別参加可能人数</h2>
+
+  <p id="count18">18時：0人</p>
+  <p id="name18"></p>
+
+  <p id="count22">22時：0人</p>
+  <p id="name22"></p>
+
+  <p id="count23">23時：0人</p>
+  <p id="name23"></p>
+
+  <h2>時間別 部隊一覧</h2>
+  <div id="timeSummary"></div>
+</div>
+
+<div class="summary-box">
+  <h2>🔍 名前検索</h2>
+
+  <input id="searchName" placeholder="プレイヤー名を入力">
+
+  <button onclick="searchPlayer()">検索</button>
+  <button onclick="clearSearch()">検索解除</button>
+</div>
+
+<div class="section">
+  <h2>検索結果</h2>
+  <div class="player-grid" id="searchResult"></div>
+</div>
+
+<div id="sections"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  updateDoc,
+  deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD826LkOY5iKXH04agBlc9IPHpeBO4C6uM",
+  authDomain: "svsv-54551.firebaseapp.com",
+  projectId: "svsv-54551",
+  storageBucket: "svsv-54551.firebasestorage.app",
+  messagingSenderId: "948158589591",
+  appId: "1:948158589591:web:53b3a4430d0629492597d2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let allData = [];
+
+window.loadData = async function(){
+  const snapshot = await getDocs(collection(db,"fortResponses"));
+
+  allData = [];
+
+  snapshot.forEach(d=>{
+    allData.push({
+      id:d.id,
+      ...d.data()
+    });
+  });
+
+  render();
+}
+
+function render(){
+  updateSummary();
+  renderTimeSummary();
+  renderCards();
+}
+
+function availableTimeCount(p){
+  let count = 0;
+
+  if(p.time18) count++;
+  if(p.time22) count++;
+  if(p.time23) count++;
+
+  return count;
+}
+
+function nameHtml(list, field){
+  if(list.length === 0) return "-";
+
+  return list.map(p=>{
+    const onlyOne =
+      availableTimeCount(p) === 1;
+
+    const assigned =
+      p[field] &&
+      p[field] !== "未振り分け";
+
+    let className = "";
+
+    if(onlyOne){
+      className += " only-one-time";
+    }
+
+    if(assigned){
+      className += " assigned";
+    }
+
+    return `
+      <span class="${className.trim()}">
+        ${p.playerName || "-"}
+      </span>
+    `;
+  }).join("、");
+}
+
+function updateSummary(){
+  const joinData = allData.filter(x => x.status === "参加");
+
+  const members18 = joinData.filter(x => x.time18);
+  const members22 = joinData.filter(x => x.time22);
+  const members23 = joinData.filter(x => x.time23);
+
+  document.getElementById("count18").textContent =
+    "18時：" + members18.length + "人";
+
+  document.getElementById("count22").textContent =
+    "22時：" + members22.length + "人";
+
+  document.getElementById("count23").textContent =
+    "23時：" + members23.length + "人";
+
+  document.getElementById("name18").innerHTML =
+    nameHtml(members18,"squad18");
+
+  document.getElementById("name22").innerHTML =
+    nameHtml(members22,"squad22");
+
+  document.getElementById("name23").innerHTML =
+    nameHtml(members23,"squad23");
+}
+
+function renderTimeSummary(){
+  const div = document.getElementById("timeSummary");
+  div.innerHTML = "";
+
+  renderOneTimeSummary("18時", "squad18");
+  renderOneTimeSummary("22時", "squad22");
+  renderOneTimeSummary("23時", "squad23");
+
+  function renderOneTimeSummary(label, field){
+    const members = allData.filter(x =>
+      x[field] &&
+      x[field] !== "未振り分け"
+    );
+
+    let html = `
+      <div class="time-list">
+        <h3>${label}</h3>
+    `;
+
+    if(members.length === 0){
+      html += `<p>まだ振り分けなし</p></div>`;
+      div.innerHTML += html;
+      return;
+    }
+
+    const squads = [...new Set(members.map(x => x[field]))].sort();
+
+    squads.forEach(squad=>{
+      const squadMembers = members.filter(x => x[field] === squad);
+
+      html += `
+        <p>
+          <strong>${squad}（${squadMembers.length}/15人）</strong>：
+          ${squadMembers.map(x => x.playerName || "-").join("、")}
+        </p>
+      `;
+    });
+
+    html += `</div>`;
+    div.innerHTML += html;
+  }
+}
+
+function playerCard(p, withControls=true){
+  return `
+    <div class="card">
+      <h3>${p.playerName || "-"}</h3>
+
+      <p>参加：${p.status || "-"}</p>
+      <p>18時：${p.time18 ? "〇" : "×"} / ${p.squad18 || "未振り分け"}</p>
+      <p>22時：${p.time22 ? "〇" : "×"} / ${p.squad22 || "未振り分け"}</p>
+      <p>23時：${p.time23 ? "〇" : "×"} / ${p.squad23 || "未振り分け"}</p>
+      <p>メモ：${p.note || "-"}</p>
+
+      ${withControls ? `
+        <select onchange="changeSquad('${p.id}', 'squad18', this.value)">
+          <option value="未振り分け" ${p.squad18==="未振り分け"?"selected":""}>18時 未振り分け</option>
+          <option value="18時 第1部隊" ${p.squad18==="18時 第1部隊"?"selected":""}>18時 第1部隊</option>
+          <option value="18時 第2部隊" ${p.squad18==="18時 第2部隊"?"selected":""}>18時 第2部隊</option>
+          <option value="18時 第3部隊" ${p.squad18==="18時 第3部隊"?"selected":""}>18時 第3部隊</option>
+          <option value="18時 第4部隊" ${p.squad18==="18時 第4部隊"?"selected":""}>18時 第4部隊</option>
+          <option value="18時 第5部隊" ${p.squad18==="18時 第5部隊"?"selected":""}>18時 第5部隊</option>
+        </select>
+
+        <select onchange="changeSquad('${p.id}', 'squad22', this.value)">
+          <option value="未振り分け" ${p.squad22==="未振り分け"?"selected":""}>22時 未振り分け</option>
+          <option value="22時 第1部隊" ${p.squad22==="22時 第1部隊"?"selected":""}>22時 第1部隊</option>
+          <option value="22時 第2部隊" ${p.squad22==="22時 第2部隊"?"selected":""}>22時 第2部隊</option>
+          <option value="22時 第3部隊" ${p.squad22==="22時 第3部隊"?"selected":""}>22時 第3部隊</option>
+          <option value="22時 第4部隊" ${p.squad22==="22時 第4部隊"?"selected":""}>22時 第4部隊</option>
+          <option value="22時 第5部隊" ${p.squad22==="22時 第5部隊"?"selected":""}>22時 第5部隊</option>
+        </select>
+
+        <select onchange="changeSquad('${p.id}', 'squad23', this.value)">
+          <option value="未振り分け" ${p.squad23==="未振り分け"?"selected":""}>23時 未振り分け</option>
+          <option value="23時 第1部隊" ${p.squad23==="23時 第1部隊"?"selected":""}>23時 第1部隊</option>
+          <option value="23時 第2部隊" ${p.squad23==="23時 第2部隊"?"selected":""}>23時 第2部隊</option>
+          <option value="23時 第3部隊" ${p.squad23==="23時 第3部隊"?"selected":""}>23時 第3部隊</option>
+          <option value="23時 第4部隊" ${p.squad23==="23時 第4部隊"?"selected":""}>23時 第4部隊</option>
+          <option value="23時 第5部隊" ${p.squad23==="23時 第5部隊"?"selected":""}>23時 第5部隊</option>
+        </select>
+
+        <button class="delete" onclick="removePlayer('${p.id}')">
+          削除
+        </button>
+      ` : ""}
+    </div>
+  `;
+}
+
+function renderCards(){
+  const div = document.getElementById("sections");
+
+  div.innerHTML = `
+    <div class="section">
+      <h2>参加者一覧：${allData.length}人</h2>
+      <div class="grid">
+        ${allData.map(p => playerCard(p, true)).join("")}
+      </div>
+    </div>
+  `;
+}
+
+async function assignTime(label, fieldTime, fieldSquad, squadCount){
+  const members = allData.filter(x =>
+    x.status === "参加" &&
+    x[fieldTime] === true
+  );
+
+  const maxMembers = squadCount * 15;
+  const activeMembers = members.slice(0, maxMembers);
+  const waitingMembers = members.slice(maxMembers);
+
+  for(let i = 0; i < activeMembers.length; i++){
+    const squadNumber = (i % squadCount) + 1;
+
+    const squadName =
+      `${label} 第${squadNumber}部隊`;
+
+    await updateDoc(
+      doc(db,"fortResponses",activeMembers[i].id),
+      {
+        [fieldSquad]: squadName
+      }
+    );
+  }
+
+  for(const member of waitingMembers){
+    await updateDoc(
+      doc(db,"fortResponses",member.id),
+      {
+        [fieldSquad]: "未振り分け"
+      }
+    );
+  }
+}
+
+window.autoAssignByTime = async function(){
+  const squad18Count = Number(document.getElementById("squad18Count").value || 0);
+  const squad22Count = Number(document.getElementById("squad22Count").value || 0);
+  const squad23Count = Number(document.getElementById("squad23Count").value || 0);
+
+  if(squad18Count <= 0 && squad22Count <= 0 && squad23Count <= 0){
+    alert("最低1つは部隊数を入力してください");
+    return;
+  }
+
+  if(squad18Count > 0){
+    await assignTime("18時", "time18", "squad18", squad18Count);
+  }
+
+  if(squad22Count > 0){
+    await assignTime("22時", "time22", "squad22", squad22Count);
+  }
+
+  if(squad23Count > 0){
+    await assignTime("23時", "time23", "squad23", squad23Count);
+  }
+
+  alert("時間ごとの振り分け完了");
+  loadData();
+}
+
+window.changeSquad = async function(id, field, value){
+  await updateDoc(
+    doc(db,"fortResponses",id),
+    {
+      [field]: value
+    }
+  );
+
+  loadData();
+}
+
+window.resetAssign = async function(){
+  const ok = confirm("全員の時間別振り分けをリセットしますか？");
+
+  if(!ok) return;
+
+  for(const member of allData){
+    await updateDoc(
+      doc(db,"fortResponses",member.id),
+      {
+        squad18:"未振り分け",
+        squad22:"未振り分け",
+        squad23:"未振り分け"
+      }
+    );
+  }
+
+  alert("自動編成をリセットしました");
+  loadData();
+}
+
+window.deleteAllResponses = async function(){
+
+  const ok = confirm(
+    "全回答を削除しますか？\nこの操作は元に戻せません。"
+  );
+
+  if(!ok) return;
+
+  for(const member of allData){
+
+    await deleteDoc(
+      doc(db,"fortResponses",member.id)
+    );
+
+  }
+
+  alert("全回答を削除しました");
+
+  loadData();
+
+}
+
+window.removePlayer = async function(id){
+  if(!confirm("削除しますか？")) return;
+
+  await deleteDoc(
+    doc(db,"fortResponses",id)
+  );
+
+  loadData();
+}
+
+window.searchPlayer = function(){
+  const keyword =
+    document.getElementById("searchName")
+    .value
+    .trim()
+    .toLowerCase();
+
+  if(!keyword){
+    alert("名前を入力してください");
+    return;
+  }
+
+  const result =
+    allData.filter(x =>
+      (x.playerName || "")
+      .toLowerCase()
+      .includes(keyword)
+    );
+
+  const div =
+    document.getElementById("searchResult");
+
+  if(result.length === 0){
+    div.innerHTML = "<p>該当者なし</p>";
+    return;
+  }
+
+  div.innerHTML =
+    result.map(p => playerCard(p, true)).join("");
+}
+
+window.clearSearch = function(){
+  document.getElementById("searchName").value = "";
+  document.getElementById("searchResult").innerHTML = "";
+}
+
+loadData();
+</script>
+
+</body>
+</html>

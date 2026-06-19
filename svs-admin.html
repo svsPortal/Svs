@@ -4,185 +4,131 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SVS管理画面</title>
-
 <style>
-body{
-  margin:0;
-  padding:20px;
-  background:#071a2d;
-  color:white;
-  font-family:sans-serif;
-}
-
-h1{
-  text-align:center;
-  color:#00d4ff;
-}
-
-h2{
-  color:#00d4ff;
-  margin-top:40px;
-  text-align:center;
-}
-
-.section{
-  margin-bottom:40px;
-}
-
-.player-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
-  gap:15px;
-}
-
-.player-card{
-  background:#132b45;
-  padding:15px;
-  border-radius:12px;
-}
-
-.player-card h3{
-  margin-top:0;
-  color:#00d4ff;
-}
-
-.player-card select,
-.player-card button,
-.summary-box input,
-.summary-box button{
-  width:100%;
-  padding:9px;
-  margin-top:10px;
-  border:none;
-  border-radius:8px;
-  box-sizing:border-box;
-}
-
-.player-card button{
-  background:#ff4444;
-  color:white;
-  font-weight:bold;
-}
-
-.top-buttons{
-  display:flex;
-  justify-content:center;
-  gap:10px;
-  margin-bottom:20px;
-  flex-wrap:wrap;
-}
-
-.top-buttons a{
-  background:#00d4ff;
-  color:black;
-  padding:10px 15px;
-  border-radius:10px;
-  text-decoration:none;
-  font-weight:bold;
-}
-
-.summary-box{
-  max-width:700px;
-  margin:20px auto;
-  background:#132b45;
-  padding:20px;
-  border-radius:12px;
-  text-align:center;
-}
-
-.name-line{
-  color:#ddd;
-  font-size:14px;
-  line-height:1.6;
-  margin-bottom:14px;
-}
-
-.reset-btn{
-  background:#ffaa00;
-  color:black;
-  font-weight:bold;
-}
-
-.search-btn{
-  background:#00d4ff;
-  color:black;
-  font-weight:bold;
-}
-
-.clear-btn{
-  background:#777;
-  color:white;
-  font-weight:bold;
-}
+body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#111827;color:#f9fafb;}
+header{padding:18px;background:#1f2937;border-bottom:1px solid #374151;}
+h1{margin:0;font-size:22px;}
+main{padding:16px;max-width:1200px;margin:0 auto;}
+.card{background:#1f2937;border:1px solid #374151;border-radius:12px;padding:14px;margin-bottom:14px;}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+button,select,input{border:none;border-radius:8px;padding:9px 12px;font-size:14px;}
+button{background:#2563eb;color:white;cursor:pointer;}
+button.danger{background:#dc2626;}
+button.warn{background:#f59e0b;color:#111827;}
+button.gray{background:#4b5563;}
+input,select{background:#111827;color:#f9fafb;border:1px solid #4b5563;}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;}
+.stat{background:#111827;border:1px solid #374151;border-radius:10px;padding:12px;}
+.stat .label{color:#9ca3af;font-size:13px;}
+.stat .num{font-size:24px;font-weight:bold;margin-top:4px;}
+table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:10px;}
+th,td{border-bottom:1px solid #374151;padding:10px;text-align:left;font-size:14px;vertical-align:middle;}
+th{background:#111827;color:#d1d5db;}
+tr:hover{background:#111827;}
+.badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:12px;font-weight:bold;}
+.join{background:#065f46;color:#d1fae5;}
+.maybe{background:#92400e;color:#fef3c7;}
+.no{background:#7f1d1d;color:#fee2e2;}
+.none{background:#374151;color:#e5e7eb;}
+.small{color:#9ca3af;font-size:13px;}
+textarea{width:100%;min-height:120px;border-radius:10px;background:#111827;color:#f9fafb;border:1px solid #4b5563;padding:10px;box-sizing:border-box;}
+.top-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.top-buttons a{background:#2563eb;color:white;padding:9px 12px;border-radius:8px;text-decoration:none;font-size:14px;}
+.name-list{line-height:1.8;}
+@media(max-width:700px){th:nth-child(5),td:nth-child(5),th:nth-child(6),td:nth-child(6){display:none;}}
 </style>
 </head>
 
 <body>
+<header>
+  <h1>SVS管理画面</h1>
+  <div class="small">参加可否・未回答者・同盟別集計・Tier確認・削除・リセット管理</div>
+  <div class="top-buttons">
+    <a href="index.html">🏠 TOP</a>
+    <a href="svs-form.html">📝 SVS回答</a>
+    <a href="box-admin.html">📦 王国箱管理</a>
+  </div>
+</header>
 
-<div class="top-buttons">
-  <a href="index.html">🏠 TOP</a>
-</div>
+<main>
+<section class="card">
+  <h2>集計</h2>
+  <div class="stats">
+    <div class="stat"><div class="label">登録者</div><div id="totalCount" class="num">0</div></div>
+    <div class="stat"><div class="label">参加</div><div id="joinCount" class="num">0</div></div>
+    <div class="stat"><div class="label">途中参加</div><div id="maybeCount" class="num">0</div></div>
+    <div class="stat"><div class="label">不参加</div><div id="noCount" class="num">0</div></div>
+    <div class="stat"><div class="label">未回答</div><div id="unansweredCount" class="num">0</div></div>
+  </div>
+</section>
 
-<h1>📋 SVS管理画面</h1>
+<section class="card">
+  <h2>Tier集計（参加＋途中参加のみ）</h2>
+  <div class="stats">
+    <div class="stat"><div class="label">FC3</div><div id="fc3Count" class="num">0</div></div>
+    <div class="stat"><div class="label">FC2</div><div id="fc2Count" class="num">0</div></div>
+    <div class="stat"><div class="label">FC1</div><div id="fc1Count" class="num">0</div></div>
+    <div class="stat"><div class="label">T10</div><div id="t10Count" class="num">0</div></div>
+    <div class="stat"><div class="label">T9</div><div id="t9Count" class="num">0</div></div>
+  </div>
+</section>
 
-<div class="summary-box">
-  <h2>📊 参加状況</h2>
+<section class="card">
+  <h2>フィルター</h2>
+  <div class="row">
+    <button onclick="setStatusFilter('all')">全員</button>
+    <button onclick="setStatusFilter('参加')">参加</button>
+    <button onclick="setStatusFilter('途中参加')">途中参加</button>
+    <button onclick="setStatusFilter('不参加')">不参加</button>
+    <button onclick="setStatusFilter('未回答')" class="warn">未回答</button>
 
-  <p id="joinCount">参加人数：0人</p>
+    <select id="allianceFilter" onchange="render()"><option value="all">全同盟</option></select>
 
-  <p id="fc3Count">FC3：0人</p>
-  <div class="name-line" id="fc3Names">-</div>
+    <select id="tierFilter" onchange="render()">
+      <option value="all">全Tier</option>
+      <option value="FC3">FC3</option>
+      <option value="FC2">FC2</option>
+      <option value="FC1">FC1</option>
+      <option value="T10">T10</option>
+      <option value="T9">T9</option>
+      <option value="未分類">未分類</option>
+    </select>
 
-  <p id="fc2Count">FC2：0人</p>
-  <div class="name-line" id="fc2Names">-</div>
+    <input id="searchInput" type="text" placeholder="名前・同盟で検索" oninput="render()">
 
-  <p id="fc1Count">FC1：0人</p>
-  <div class="name-line" id="fc1Names">-</div>
+    <button class="gray" onclick="loadData()">再読み込み</button>
+    <button onclick="copyVisibleNames()">表示中の名前コピー</button>
+    <button class="danger" onclick="resetParticipation()">参加可否リセット</button>
+  </div>
+  <p class="small">※ 削除と参加可否リセットはパスワード確認あり。</p>
+</section>
 
-  <p id="t10Count">T10：0人</p>
-  <div class="name-line" id="t10Names">-</div>
+<section class="card">
+  <h2>表示中一覧 <span id="visibleCount" class="small"></span></h2>
+  <table>
+    <thead>
+      <tr>
+        <th>名前</th>
+        <th>同盟</th>
+        <th>参加可否</th>
+        <th>最低Tier</th>
+        <th>兵士</th>
+        <th>メモ</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="playerTable"></tbody>
+  </table>
+</section>
 
-  <p id="t9Count">T9：0人</p>
-  <div class="name-line" id="t9Names">-</div>
-</div>
-
-<div class="summary-box">
-  <h2>🔍 名前検索</h2>
-
-  <input id="searchName" placeholder="プレイヤー名を入力">
-
-  <button class="search-btn" onclick="searchPlayer()">検索</button>
-  <button class="clear-btn" onclick="clearSearch()">検索解除</button>
-</div>
-
-<div class="section">
-  <h2>🔍 検索結果</h2>
-  <div class="player-grid" id="searchResult"></div>
-</div>
-
-<div class="section"><h2>🔥 全FC3</h2><div class="player-grid" id="allFC3"></div></div>
-<div class="section"><h2>🔥 全FC2</h2><div class="player-grid" id="allFC2"></div></div>
-<div class="section"><h2>🔥 全FC1</h2><div class="player-grid" id="allFC1"></div></div>
-<div class="section"><h2>🔥 全T10</h2><div class="player-grid" id="allT10"></div></div>
-<div class="section"><h2>🔥 全T9</h2><div class="player-grid" id="allT9"></div></div>
-
-<div class="section"><h2>⚔ 本戦A</h2><div class="player-grid" id="mainA"></div></div>
-<div class="section"><h2>⚔ 本戦B</h2><div class="player-grid" id="mainB"></div></div>
-<div class="section"><h2>🛡 支援1</h2><div class="player-grid" id="support1"></div></div>
-<div class="section"><h2>🛡 支援2</h2><div class="player-grid" id="support2"></div></div>
-<div class="section"><h2>⏳ 待機</h2><div class="player-grid" id="waiting"></div></div>
+<section class="card"><h2>同盟別未回答者</h2><div id="unansweredByAlliance"></div></section>
+<section class="card"><h2>Tier別 参加者名</h2><div id="tierNames" class="name-list"></div></section>
+<section class="card"><h2>コピー用</h2><textarea id="copyArea" readonly placeholder="コピー内容がここに出ます"></textarea></section>
+</main>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  doc,
-  updateDoc,
-  deleteDoc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD826LkOY5iKXH04agBlc9IPHpeBO4C6uM",
@@ -193,25 +139,27 @@ const firebaseConfig = {
   appId: "1:948158589591:web:53b3a4430d0629492597d2"
 };
 
+const ADMIN_PASSWORD = "1234";
+const COLLECTION_NAME = "svsResponses";
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let allData = [];
+let allPlayers = [];
+let currentStatusFilter = "all";
 
-async function loadData(){
-  const snapshot = await getDocs(collection(db,"svsResponses"));
+window.loadData = loadData;
+window.setStatusFilter = setStatusFilter;
+window.copyVisibleNames = copyVisibleNames;
+window.deletePlayer = deletePlayer;
+window.resetParticipation = resetParticipation;
+window.render = render;
 
-  allData = [];
-
-  snapshot.forEach(d => {
-    allData.push({
-      id:d.id,
-      ...d.data()
-    });
-  });
-
-  renderAll();
-}
+function getStatus(player){return player.status || player.participation || "未回答";}
+function getAlliance(player){return player.alliance || player.allianceName || "-";}
+function getName(player){return player.playerName || player.name || player.gameName || "名前なし";}
+function getMemo(player){return player.memo || player.note || player.comment || "";}
+function isActive(player){const s=getStatus(player);return s==="参加"||s==="途中参加";}
 
 function getTierValue(p,type){
   if(p[`fc3${type}`]) return 3;
@@ -219,237 +167,265 @@ function getTierValue(p,type){
   if(p[`fc1${type}`]) return 1;
   if(p[`t10${type}`]) return 0;
   if(p[`t9${type}`]) return -1;
+
+  const key = type === "Archer" ? "archer" : type.toLowerCase();
+  const oldValue = p[`${key}Tier`] || p[key] || "";
+  if(oldValue === "FC3") return 3;
+  if(oldValue === "FC2") return 2;
+  if(oldValue === "FC1") return 1;
+  if(oldValue === "T10") return 0;
+  if(oldValue === "T9") return -1;
   return -2;
 }
 
 function getLowestTier(p){
-  const shield = getTierValue(p,"Shield");
-  const spear = getTierValue(p,"Spear");
-  const archer = getTierValue(p,"Archer");
-
-  const minTier = Math.min(shield,spear,archer);
-
+  const minTier = Math.min(getTierValue(p,"Shield"),getTierValue(p,"Spear"),getTierValue(p,"Archer"));
   if(minTier === 3) return "FC3";
   if(minTier === 2) return "FC2";
   if(minTier === 1) return "FC1";
   if(minTier === 0) return "T10";
   if(minTier === -1) return "T9";
-
   return "未分類";
 }
 
-function getTroopTier(p){
-  const shield =
-    p.fc3Shield ? "FC3" :
-    p.fc2Shield ? "FC2" :
-    p.fc1Shield ? "FC1" :
-    p.t10Shield ? "T10" :
-    p.t9Shield ? "T9" : "-";
+function getOneTroopTier(p,type){
+  if(p[`fc3${type}`]) return "FC3";
+  if(p[`fc2${type}`]) return "FC2";
+  if(p[`fc1${type}`]) return "FC1";
+  if(p[`t10${type}`]) return "T10";
+  if(p[`t9${type}`]) return "T9";
 
-  const spear =
-    p.fc3Spear ? "FC3" :
-    p.fc2Spear ? "FC2" :
-    p.fc1Spear ? "FC1" :
-    p.t10Spear ? "T10" :
-    p.t9Spear ? "T9" : "-";
-
-  const archer =
-    p.fc3Archer ? "FC3" :
-    p.fc2Archer ? "FC2" :
-    p.fc1Archer ? "FC1" :
-    p.t10Archer ? "T10" :
-    p.t9Archer ? "T9" : "-";
-
-  return `🛡${shield} / ⚔${spear} / 🏹${archer}`;
+  const key = type === "Archer" ? "archer" : type.toLowerCase();
+  return p[`${key}Tier`] || p[key] || "-";
 }
 
-function renderPlayers(players,id){
-  const div = document.getElementById(id);
-  if(!div) return;
+function getTroops(player){
+  return `盾:${getOneTroopTier(player,"Shield")} / 槍:${getOneTroopTier(player,"Spear")} / 弓:${getOneTroopTier(player,"Archer")}`;
+}
 
-  div.innerHTML = "";
+function statusBadge(status){
+  if(status==="参加") return `<span class="badge join">参加</span>`;
+  if(status==="途中参加") return `<span class="badge maybe">途中参加</span>`;
+  if(status==="不参加") return `<span class="badge no">不参加</span>`;
+  return `<span class="badge none">未回答</span>`;
+}
 
-  if(players.length === 0){
-    div.innerHTML = `<p>該当なし</p>`;
+function checkAdminPassword(){
+  const input=prompt("管理パスワードを入力してください");
+  if(input!==ADMIN_PASSWORD){alert("パスワードが違います");return false;}
+  return true;
+}
+
+async function loadData(){
+  const snapshot=await getDocs(collection(db,COLLECTION_NAME));
+  allPlayers=snapshot.docs.map(d=>({id:d.id,...d.data()}));
+  buildAllianceFilter();
+  render();
+}
+
+function buildAllianceFilter(){
+  const select=document.getElementById("allianceFilter");
+  const current=select.value;
+  const alliances=[...new Set(allPlayers.map(getAlliance))].filter(x=>x&&x!=="-").sort();
+
+  select.innerHTML=`<option value="all">全同盟</option>`;
+  alliances.forEach(a=>{
+    const option=document.createElement("option");
+    option.value=a;
+    option.textContent=a;
+    select.appendChild(option);
+  });
+
+  if([...select.options].some(o=>o.value===current)) select.value=current;
+}
+
+function setStatusFilter(status){
+  currentStatusFilter=status;
+  render();
+}
+
+function getFilteredPlayers(){
+  const allianceFilter=document.getElementById("allianceFilter").value;
+  const tierFilter=document.getElementById("tierFilter").value;
+  const search=document.getElementById("searchInput").value.trim().toLowerCase();
+
+  return allPlayers.filter(p=>{
+    const status=getStatus(p);
+    const alliance=getAlliance(p);
+    const name=getName(p);
+    const tier=getLowestTier(p);
+
+    if(currentStatusFilter!=="all"&&status!==currentStatusFilter) return false;
+    if(allianceFilter!=="all"&&alliance!==allianceFilter) return false;
+    if(tierFilter!=="all"&&tier!==tierFilter) return false;
+
+    if(search){
+      const text=`${name} ${alliance}`.toLowerCase();
+      if(!text.includes(search)) return false;
+    }
+
+    return true;
+  });
+}
+
+function render(){
+  renderStats();
+  renderTable();
+  renderUnansweredByAlliance();
+  renderTierNames();
+}
+
+function renderStats(){
+  const total=allPlayers.length;
+  const join=allPlayers.filter(p=>getStatus(p)==="参加").length;
+  const maybe=allPlayers.filter(p=>getStatus(p)==="途中参加").length;
+  const no=allPlayers.filter(p=>getStatus(p)==="不参加").length;
+  const unanswered=allPlayers.filter(p=>getStatus(p)==="未回答").length;
+  const activePlayers=allPlayers.filter(isActive);
+
+  document.getElementById("totalCount").textContent=total;
+  document.getElementById("joinCount").textContent=join;
+  document.getElementById("maybeCount").textContent=maybe;
+  document.getElementById("noCount").textContent=no;
+  document.getElementById("unansweredCount").textContent=unanswered;
+
+  document.getElementById("fc3Count").textContent=activePlayers.filter(p=>getLowestTier(p)==="FC3").length;
+  document.getElementById("fc2Count").textContent=activePlayers.filter(p=>getLowestTier(p)==="FC2").length;
+  document.getElementById("fc1Count").textContent=activePlayers.filter(p=>getLowestTier(p)==="FC1").length;
+  document.getElementById("t10Count").textContent=activePlayers.filter(p=>getLowestTier(p)==="T10").length;
+  document.getElementById("t9Count").textContent=activePlayers.filter(p=>getLowestTier(p)==="T9").length;
+}
+
+function renderTable(){
+  const tbody=document.getElementById("playerTable");
+  const players=getFilteredPlayers();
+  document.getElementById("visibleCount").textContent=`(${players.length}人)`;
+  tbody.innerHTML="";
+
+  if(players.length===0){
+    tbody.innerHTML=`<tr><td colspan="7">該当者なし</td></tr>`;
     return;
   }
 
-  players.forEach(p => {
-    div.innerHTML += `
-      <div class="player-card">
-        <h3>${p.playerName || "-"}</h3>
+  players.forEach(p=>{
+    const tr=document.createElement("tr");
+    const status=getStatus(p);
+    const mark=status==="途中参加"?"※":"";
 
-        <p>⚔ 戦力: ${p.power || "-"}</p>
-        <p>🏰 サーバー: ${p.server || "-"}</p>
-        <p>🛡 同盟: ${p.alliance || "-"}</p>
-        <p>✅ 参加可否: ${p.status || "-"}</p>
-        <p>🔥 最低Tier: ${getLowestTier(p)}</p>
-        <p>${getTroopTier(p)}</p>
+    tr.innerHTML=`
+      <td>${escapeHtml(mark+getName(p))}</td>
+      <td>${escapeHtml(getAlliance(p))}</td>
+      <td>${statusBadge(status)}</td>
+      <td>${escapeHtml(getLowestTier(p))}</td>
+      <td>${escapeHtml(getTroops(p))}</td>
+      <td>${escapeHtml(getMemo(p))}</td>
+      <td><button class="danger" onclick="deletePlayer('${p.id}')">削除</button></td>
+    `;
 
-        <select onchange="changeGroup('${p.id}',this.value)">
-          <option value="">未設定</option>
-          <option value="本戦A" ${p.group==="本戦A"?"selected":""}>本戦A</option>
-          <option value="本戦B" ${p.group==="本戦B"?"selected":""}>本戦B</option>
-          <option value="支援1" ${p.group==="支援1"?"selected":""}>支援1</option>
-          <option value="支援2" ${p.group==="支援2"?"selected":""}>支援2</option>
-          <option value="待機" ${p.group==="待機"?"selected":""}>待機</option>
-        </select>
+    tbody.appendChild(tr);
+  });
+}
 
-      
+function renderUnansweredByAlliance(){
+  const area=document.getElementById("unansweredByAlliance");
+  const unanswered=allPlayers.filter(p=>getStatus(p)==="未回答");
+  const map={};
+
+  unanswered.forEach(p=>{
+    const alliance=getAlliance(p);
+    if(!map[alliance]) map[alliance]=[];
+    map[alliance].push(getName(p));
+  });
+
+  const alliances=Object.keys(map).sort();
+
+  if(alliances.length===0){
+    area.innerHTML=`<p class="small">未回答者はいません。</p>`;
+    return;
+  }
+
+  area.innerHTML=alliances.map(a=>`
+    <div class="card">
+      <strong>${escapeHtml(a)}：${map[a].length}人</strong>
+      <div class="small">${escapeHtml(map[a].join("、"))}</div>
+    </div>
+  `).join("");
+}
+
+function renderTierNames(){
+  const area=document.getElementById("tierNames");
+  const activePlayers=allPlayers.filter(isActive);
+  const tiers=["FC3","FC2","FC1","T10","T9"];
+
+  area.innerHTML=tiers.map(tier=>{
+    const members=activePlayers.filter(p=>getLowestTier(p)===tier);
+    const names=members.map(p=>{
+      const mark=getStatus(p)==="途中参加"?"※":"";
+      return mark+getName(p);
+    }).join("、")||"該当なし";
+
+    return `
+      <div class="card">
+        <strong>${tier}：${members.length}人</strong>
+        <div class="small">${escapeHtml(names)}</div>
       </div>
     `;
-  });
+  }).join("");
 }
 
-window.changeGroup = async function(id,group){
-  await updateDoc(doc(db,"svsResponses",id),{
-    group:group
-  });
+function copyVisibleNames(){
+  const players=getFilteredPlayers();
+  const text=players.map(p=>{
+    const mark=getStatus(p)==="途中参加"?"※":"";
+    return `${getAlliance(p)} ${mark}${getName(p)}（${getStatus(p)} / ${getLowestTier(p)}）`;
+  }).join("\\n");
 
-  loadData();
+  document.getElementById("copyArea").value=text;
+
+  navigator.clipboard.writeText(text)
+    .then(()=>alert("表示中の名前をコピーしました"))
+    .catch(()=>alert("コピー欄に出しました。手動でコピーしてください"));
 }
 
-window.resetStatus = async function(){
-  if(!confirm("全員の参加可否を未回答に戻しますか？")){
-    return;
+async function deletePlayer(id){
+  if(!checkAdminPassword()) return;
+  if(!confirm("この回答を削除します。よろしいですか？")) return;
+  await deleteDoc(doc(db,COLLECTION_NAME,id));
+  alert("削除しました");
+  await loadData();
+}
+
+async function resetParticipation(){
+  if(!checkAdminPassword()) return;
+  if(!confirm("参加可否を全員「未回答」に戻します。よろしいですか？")) return;
+
+  const targets=allPlayers.filter(p=>getStatus(p)!=="未回答");
+
+  for(const p of targets){
+    await updateDoc(doc(db,COLLECTION_NAME,p.id),{
+      status:"未回答",
+      participation:"",
+      updatedAt:new Date().toISOString()
+    });
   }
 
-  for(const member of allData){
-    await updateDoc(
-      doc(db,"svsResponses",member.id),
-      {
-        status:"未回答"
-      }
-    );
-  }
-
-  alert("参加可否をリセットしました");
-
-  loadData();
+  alert(`参加可否をリセットしました：${targets.length}件`);
+  await loadData();
 }
 
-window.removePlayer = async function(id){
-  if(!confirm("削除しますか？")) return;
-
-  await deleteDoc(doc(db,"svsResponses",id));
-
-  loadData();
+function escapeHtml(value){
+  return String(value??"")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
 }
 
-window.searchPlayer = function(){
-  const keyword =
-    document.getElementById("searchName")
-    .value
-    .trim()
-    .toLowerCase();
-
-  if(!keyword){
-    alert("名前を入力してください");
-    return;
-  }
-
-  const result =
-    allData.filter(x =>
-      (x.playerName || "")
-      .toLowerCase()
-      .includes(keyword)
-    );
-
-  renderPlayers(result,"searchResult");
-}
-
-window.clearSearch = function(){
-  document.getElementById("searchName").value = "";
-  document.getElementById("searchResult").innerHTML = "";
-}
-
-function nameText(list){
-
-  if(list.length === 0){
-    return "-";
-  }
-
-  return list.map(x => {
-
-    const mark =
-      x.status === "途中参加"
-      ? "⚠"
-      : "";
-
-    return mark + (x.playerName || "-");
-
-  }).join("、");
-
-}
-
-function renderAll(){
-  const activePlayers =
-    allData.filter(x =>
-      x.status === "参加" ||
-      x.status === "途中参加"
-    );
-
-  const activeFC3 = activePlayers.filter(x => getLowestTier(x)==="FC3");
-  const activeFC2 = activePlayers.filter(x => getLowestTier(x)==="FC2");
-  const activeFC1 = activePlayers.filter(x => getLowestTier(x)==="FC1");
-  const activeT10 = activePlayers.filter(x => getLowestTier(x)==="T10");
-  const activeT9 = activePlayers.filter(x => getLowestTier(x)==="T9");
-
-  const allFC3 = allData.filter(x => getLowestTier(x)==="FC3");
-  const allFC2 = allData.filter(x => getLowestTier(x)==="FC2");
-  const allFC1 = allData.filter(x => getLowestTier(x)==="FC1");
-  const allT10 = allData.filter(x => getLowestTier(x)==="T10");
-  const allT9 = allData.filter(x => getLowestTier(x)==="T9");
-
-  const mainA = allData.filter(x => x.group==="本戦A");
-  const mainB = allData.filter(x => x.group==="本戦B");
-  const support1 = allData.filter(x => x.group==="支援1");
-  const support2 = allData.filter(x => x.group==="支援2");
-  const waiting = allData.filter(x => x.group==="待機");
-
-  document.getElementById("joinCount").textContent =
-    "参加人数：" + activePlayers.length + "人";
-
-  document.getElementById("fc3Count").textContent =
-    "FC3：" + activeFC3.length + "人";
-  document.getElementById("fc3Names").textContent =
-    nameText(activeFC3);
-
-  document.getElementById("fc2Count").textContent =
-    "FC2：" + activeFC2.length + "人";
-  document.getElementById("fc2Names").textContent =
-    nameText(activeFC2);
-
-  document.getElementById("fc1Count").textContent =
-    "FC1：" + activeFC1.length + "人";
-  document.getElementById("fc1Names").textContent =
-    nameText(activeFC1);
-
-  document.getElementById("t10Count").textContent =
-    "T10：" + activeT10.length + "人";
-  document.getElementById("t10Names").textContent =
-    nameText(activeT10);
-
-  document.getElementById("t9Count").textContent =
-    "T9：" + activeT9.length + "人";
-  document.getElementById("t9Names").textContent =
-    nameText(activeT9);
-
-  renderPlayers(allFC3,"allFC3");
-  renderPlayers(allFC2,"allFC2");
-  renderPlayers(allFC1,"allFC1");
-  renderPlayers(allT10,"allT10");
-  renderPlayers(allT9,"allT9");
-
-  renderPlayers(mainA,"mainA");
-  renderPlayers(mainB,"mainB");
-  renderPlayers(support1,"support1");
-  renderPlayers(support2,"support2");
-  renderPlayers(waiting,"waiting");
-}
-
-loadData();
+loadData().catch(error=>{
+  console.error(error);
+  alert("読み込みエラーです。Firebase設定とコレクション名を確認してください。");
+});
 </script>
-
 </body>
 </html>

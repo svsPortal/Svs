@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>未回答者管理</title>
+
+<style>
+body{margin:0;background:#071a2d;color:white;font-family:sans-serif;padding:20px;}
+h1,h2{color:#00d4ff;text-align:center;}
+.box{max-width:1000px;margin:20px auto;background:#132b45;padding:20px;border-radius:12px;}
+input,textarea,button{width:100%;padding:12px;margin-top:10px;border:none;border-radius:8px;box-sizing:border-box;}
+button{background:#00d4ff;color:black;font-weight:bold;cursor:pointer;}
+.delete{background:#ff4444;color:white;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:15px;}
+.card{background:#173754;padding:15px;border-radius:12px;}
+.ok{color:#66ff99;font-weight:bold;}
+.ng{color:#ff7777;font-weight:bold;}
+</style>
+</head>
+
+<body>
+
+<h1>👥 未回答者管理</h1>
+
+<div class="box">
+  <h2>メンバー登録</h2>
+  <input id="memberName" placeholder="プレイヤー名">
+  <button onclick="addMember()">1人登録</button>
+
+  <textarea id="bulkNames" placeholder="複数登録：1行に1人ずつ名前を入力"></textarea>
+  <button onclick="addBulkMembers()">まとめて登録</button>
+
+  <button onclick="loadData()">再読み込み</button>
+</div>
+
+<div class="box">
+  <h2>📊 集計</h2>
+  <p id="memberCount">登録メンバー：0人</p>
+  <p id="svsNoCount">SVS未回答：0人</p>
+  <p id="fortNoCount">砦未回答：0人</p>
+  <p id="rallyNoCount">集結未回答：0人</p>
+</div>
+
+<div class="box">
+  <h2>⚔ SVS未回答者</h2>
+  <div id="svsNoNames"></div>
+</div>
+
+<div class="box">
+  <h2>🏰 砦未回答者</h2>
+  <div id="fortNoNames"></div>
+</div>
+
+<div class="box">
+  <h2>🔥 集結情報未回答者</h2>
+  <div id="rallyNoNames"></div>
+</div>
+
+<div class="box">
+  <h2>📋 全メンバー回答状況</h2>
+  <div class="grid" id="memberList"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  setDoc,
+  deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD826LkOY5iKXH04agBlc9IPHpeBO4C6uM",
+  authDomain: "svsv-54551.firebaseapp.com",
+  projectId: "svsv-54551",
+  storageBucket: "svsv-54551.firebasestorage.app",
+  messagingSenderId: "948158589591",
+  appId: "1:948158589591:web:53b3a4430d0629492597d2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let members = [];
+let svsMap = {};
+let fortMap = {};
+let rallyMap = {};
+
+function isAnswered(status){
+  return (
+    status === "参加" ||
+    status === "不参加" ||
+    status === "条件付き参加"
+  );
+}
+
+window.addMember = async function(){
+  const name = document.getElementById("memberName").value.trim();
+
+  if(!name){
+    alert("名前を入力してください");
+    return;
+  }
+
+  await setDoc(
+    doc(db,"members",name),
+    {
+      playerName:name,
+      createdAt:new Date().toISOString()
+    }
+  );
+
+  document.getElementById("memberName").value = "";
+  alert("登録しました");
+  loadData();
+}
+
+window.addBulkMembers = async function(){
+  const text = document.getElementById("bulkNames").value.trim();
+
+  if(!text){
+    alert("名前を入力してください");
+    return;
+  }
+
+  const names = text
+    .split("\n")
+    .map(x => x.trim())
+    .filter(x => x);
+
+  for(const name of names){
+    await setDoc(
+      doc(db,"members",name),
+      {
+        playerName:name,
+        createdAt:new Date().toISOString()
+      }
+    );
+  }
+
+  document.getElementById("bulkNames").value = "";
+  alert(names.length + "人登録しました");
+  loadData();
+}
+
+window.removeMember = async function(name){
+  if(!confirm(name + " をメンバー一覧から削除しますか？")) return;
+
+  await deleteDoc(doc(db,"members",name));
+  loadData();
+}
+
+window.loadData = async function(){
+  members = [];
+  svsMap = {};
+  fortMap = {};
+  rallyMap = {};
+
+  const memberSnap = await getDocs(collection(db,"members"));
+  const svsSnap = await getDocs(collection(db,"svsResponses"));
+  const fortSnap = await getDocs(collection(db,"fortResponses"));
+  const rallySnap = await getDocs(collection(db,"rallyResponses"));
+
+  memberSnap.forEach(d=>{
+    const data = d.data();
+    members.push(data.playerName || d.id);
+  });
+
+  svsSnap.forEach(d=>{
+    const data = d.data();
+    const name = data.playerName || d.id;
+    svsMap[name] = data;
+  });
+
+  fortSnap.forEach(d=>{
+    const data = d.data();
+    const name = data.playerName || d.id;
+    fortMap[name] = data;
+  });
+
+  rallySnap.forEach(d=>{
+    const data = d.data();
+    const name = data.playerName || d.id;
+    rallyMap[name] = data;
+  });
+
+  members.sort();
+  render();
+}
+
+function render(){
+  const svsNo = [];
+  const fortNo = [];
+  const rallyNo = [];
+
+  members.forEach(name=>{
+    const svs = svsMap[name];
+    const fort = fortMap[name];
+    const rally = rallyMap[name];
+
+    if(!svs || !isAnswered(svs.status)){
+      svsNo.push(name);
+    }
+
+    if(!fort || !isAnswered(fort.status)){
+      fortNo.push(name);
+    }
+
+    if(!rally){
+      rallyNo.push(name);
+    }
+  });
+
+  document.getElementById("memberCount").textContent =
+    "登録メンバー：" + members.length + "人";
+
+  document.getElementById("svsNoCount").textContent =
+    "SVS未回答：" + svsNo.length + "人";
+
+  document.getElementById("fortNoCount").textContent =
+    "砦未回答：" + fortNo.length + "人";
+
+  document.getElementById("rallyNoCount").textContent =
+    "集結未回答：" + rallyNo.length + "人";
+
+  document.getElementById("svsNoNames").textContent =
+    svsNo.join("、") || "該当なし";
+
+  document.getElementById("fortNoNames").textContent =
+    fortNo.join("、") || "該当なし";
+
+  document.getElementById("rallyNoNames").textContent =
+    rallyNo.join("、") || "該当なし";
+
+  const list = document.getElementById("memberList");
+  list.innerHTML = "";
+
+  members.forEach(name=>{
+    const svsAnswered = svsMap[name] && isAnswered(svsMap[name].status);
+    const fortAnswered = fortMap[name] && isAnswered(fortMap[name].status);
+    const rallyAnswered = !!rallyMap[name];
+
+    list.innerHTML += `
+      <div class="card">
+        <h3>${name}</h3>
+
+        <p>SVS：
+          <span class="${svsAnswered ? "ok" : "ng"}">
+            ${svsAnswered ? "回答済" : "未回答"}
+          </span>
+        </p>
+
+        <p>砦：
+          <span class="${fortAnswered ? "ok" : "ng"}">
+            ${fortAnswered ? "回答済" : "未回答"}
+          </span>
+        </p>
+
+        <p>集結：
+          <span class="${rallyAnswered ? "ok" : "ng"}">
+            ${rallyAnswered ? "回答済" : "未回答"}
+          </span>
+        </p>
+
+        <button class="delete" onclick="removeMember('${name}')">
+          メンバー削除
+        </button>
+      </div>
+    `;
+  });
+}
+
+loadData();
+</script>
+
+</body>
+</html>

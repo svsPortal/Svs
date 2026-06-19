@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>砦争奪戦 参加回答</title>
+
+<style>
+body{
+  margin:0;
+  background:#071a2d;
+  color:white;
+  font-family:sans-serif;
+  padding:20px;
+}
+
+h1{
+  text-align:center;
+  color:#00d4ff;
+}
+
+.card{
+  max-width:600px;
+  margin:20px auto;
+  background:#132b45;
+  padding:20px;
+  border-radius:12px;
+}
+
+input,select,textarea,button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+  box-sizing:border-box;
+}
+
+button{
+  background:#00d4ff;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.time-box label{
+  display:block;
+  background:#173754;
+  margin-top:10px;
+  padding:12px;
+  border-radius:8px;
+}
+
+.time-box input{
+  width:auto;
+  margin-right:8px;
+}
+
+a{
+  color:#00d4ff;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>🏰 砦争奪戦 参加回答</h1>
+
+<div class="card">
+
+  <input id="playerName" placeholder="プレイヤー名">
+
+
+  <select id="status">
+    <option value="参加">参加</option>
+    <option value="不参加">不参加</option>
+  </select>
+
+  <h3>参加可能時間</h3>
+
+  <div class="time-box">
+    <label>
+      <input type="checkbox" id="time18">
+      18時
+    </label>
+
+    <label>
+      <input type="checkbox" id="time22">
+      22時
+    </label>
+
+    <label>
+      <input type="checkbox" id="time23">
+      23時
+    </label>
+  </div>
+
+  <textarea id="note" placeholder="メモ"></textarea>
+
+  <button id="submitBtn" type="button">
+    送信 / 更新
+  </button>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
+  updateDoc,
+  doc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD826LkOY5iKXH04agBlc9IPHpeBO4C6uM",
+  authDomain: "svsv-54551.firebaseapp.com",
+  projectId: "svsv-54551",
+  storageBucket: "svsv-54551.firebasestorage.app",
+  messagingSenderId: "948158589591",
+  appId: "1:948158589591:web:53b3a4430d0629492597d2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+async function submitFort(){
+
+  try{
+
+    const playerName =
+      document.getElementById("playerName").value.trim();
+
+    if(!playerName){
+      alert("プレイヤー名を入力してください");
+      return;
+    }
+
+    const data = {
+      playerName,
+
+      status:
+        document.getElementById("status").value,
+
+      time18:
+        document.getElementById("time18").checked,
+
+      time22:
+        document.getElementById("time22").checked,
+
+      time23:
+        document.getElementById("time23").checked,
+
+      note:
+        document.getElementById("note").value.trim(),
+
+      updatedAt:
+        new Date().toISOString()
+    };
+
+    const q = query(
+      collection(db,"fortResponses"),
+      where("playerName","==",playerName)
+    );
+
+    const snapshot = await getDocs(q);
+
+    if(!snapshot.empty){
+
+      const oldDoc = snapshot.docs[0];
+
+      await updateDoc(
+        doc(db,"fortResponses",oldDoc.id),
+        data
+      );
+
+      alert("回答を更新しました");
+
+    }else{
+
+      await addDoc(
+        collection(db,"fortResponses"),
+        {
+          ...data,
+          squad:"未振り分け",
+          createdAt:new Date().toISOString()
+        }
+      );
+
+      alert("回答を登録しました");
+
+    }
+
+    location.href = "index.html";
+
+  }catch(error){
+
+    console.error(error);
+
+    alert("エラー: " + error.message);
+
+  }
+
+}
+
+document
+  .getElementById("submitBtn")
+  .addEventListener("click", submitFort);
+
+</script>
+
+</body>
+</html>

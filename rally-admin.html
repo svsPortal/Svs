@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>集結情報 管理ページ</title>
+
+<style>
+body{margin:0;background:#071a2d;color:white;font-family:sans-serif;padding:20px;}
+h1,h2,h3{color:#00d4ff;text-align:center;}
+.summary,.section{max-width:1100px;margin:20px auto;background:#132b45;padding:20px;border-radius:12px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:15px;}
+.card{background:#173754;padding:15px;border-radius:12px;}
+.card h3{color:#00d4ff;margin-top:0;}
+.name-list{background:#173754;padding:15px;border-radius:12px;line-height:1.9;}
+details{margin-top:10px;background:#10263d;padding:10px;border-radius:10px;}
+summary{cursor:pointer;color:#00d4ff;font-weight:bold;}
+button{width:100%;padding:10px;margin-top:10px;border:none;border-radius:8px;background:#ff4444;color:white;font-weight:bold;cursor:pointer;}
+input{width:100%;padding:10px;margin-top:10px;border:none;border-radius:8px;box-sizing:border-box;}
+.top-buttons{display:flex;justify-content:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+.top-buttons a{background:#00d4ff;color:black;padding:10px 15px;border-radius:10px;text-decoration:none;font-weight:bold;}
+.small{font-size:13px;color:#ddd;}
+.search-btn{background:#00d4ff;color:black;}
+.clear-btn{background:#777;color:white;}
+.good{color:#66ff99;font-weight:bold;}
+.warn{color:#ffdd55;font-weight:bold;}
+hr{border:0;border-top:1px solid #35516c;margin:10px 0;}
+</style>
+</head>
+
+<body>
+
+<div class="top-buttons">
+  <a href="index.html">🏠 TOP</a>
+  <a href="rally-form.html">📝 回答</a>
+  <a href="box-admin.html">📦 王国箱管理</a>
+</div>
+
+<h1>⚔ 集結情報 管理ページ</h1>
+
+<div class="summary">
+  <h2>📊 集計</h2>
+  <p id="totalCount">回答人数：0人</p>
+  <p id="rallyCount">集結主可能：0人</p>
+  <p id="petCount">ペット登録者：0人</p>
+  <p id="snowLeopardCount">雪豹登録者：0人</p>
+  <p id="birdCount">巨鳥登録者：0人</p>
+</div>
+
+<div class="summary">
+  <h2>🔍 名前検索</h2>
+  <input id="searchName" placeholder="プレイヤー名を入力" oninput="searchPlayer()">
+  <button class="clear-btn" onclick="clearSearch()">検索解除</button>
+</div>
+
+<div class="section">
+  <h2>🔍 検索結果</h2>
+  <div class="grid" id="searchResult"></div>
+</div>
+
+<div class="section">
+  <h2>🏆 集結容量ランキング</h2>
+  <div class="grid" id="capacityRanking"></div>
+</div>
+
+<div class="section">
+  <h2>⚔ 集結主可能者</h2>
+  <div class="grid" id="rallyMembers"></div>
+</div>
+
+<div class="section">
+  <h2>🐾 ペット登録者</h2>
+  <div class="grid" id="petMembers"></div>
+</div>
+
+<div class="section">
+  <h2>🐆 雪豹 登録者</h2>
+  <div class="name-list" id="snowLeopardMembers"></div>
+</div>
+
+<div class="section">
+  <h2>🦅 巨鳥 登録者</h2>
+  <div class="name-list" id="birdMembers"></div>
+</div>
+
+<div class="section">
+  <h2>🐾 ペット戦闘スキルLv10 所持者</h2>
+  <div class="name-list" id="petLv10Members"></div>
+</div>
+
+<div class="section">
+  <h2>🛡 ローガン 5-5-5 所持者</h2>
+  <div class="name-list" id="logan555"></div>
+</div>
+
+<div class="section">
+  <h2>🏹 グレッグ 5-5-5 所持者</h2>
+  <div class="name-list" id="greg555"></div>
+</div>
+
+<div class="section">
+  <h2>🗡 ジェロニモ 5-5-5 所持者</h2>
+  <div class="name-list" id="jeronimo555"></div>
+</div>
+
+<div class="section">
+  <h2>🔟 ローガン 専用10 所持者</h2>
+  <div class="name-list" id="loganWeapon10"></div>
+</div>
+
+<div class="section">
+  <h2>🔟 グレッグ 専用10 所持者</h2>
+  <div class="name-list" id="gregWeapon10"></div>
+</div>
+
+<div class="section">
+  <h2>🔟 ジェロニモ 専用10 所持者</h2>
+  <div class="name-list" id="jeronimoWeapon10"></div>
+</div>
+
+<div class="section">
+  <h2>🔥 ジェシー スキル5 所持者</h2>
+  <div class="name-list" id="jessie5"></div>
+</div>
+
+<div class="section">
+  <h2>🛡 パトリック スキル5 所持者</h2>
+  <div class="name-list" id="patrick5"></div>
+</div>
+
+<div class="section">
+  <h2>🌙 ソユン スキル5 所持者</h2>
+  <div class="name-list" id="soyoon5"></div>
+</div>
+
+<div class="section">
+  <h2>🏹 リンセツ スキル5 所持者</h2>
+  <div class="name-list" id="rinsetsu5"></div>
+</div>
+
+<div class="section">
+  <h2>📋 全回答一覧</h2>
+  <div class="grid" id="allMembers"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD826LkOY5iKXH04agBlc9IPHpeBO4C6uM",
+  authDomain: "svsv-54551.firebaseapp.com",
+  projectId: "svsv-54551",
+  storageBucket: "svsv-54551.firebasestorage.app",
+  messagingSenderId: "948158589591",
+  appId: "1:948158589591:web:53b3a4430d0629492597d2"
+};
+
+const ADMIN_PASSWORD = "1234";
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let allData = [];
+
+async function loadData(){
+  const snapshot = await getDocs(collection(db,"rallyResponses"));
+
+  allData = [];
+
+  snapshot.forEach(d=>{
+    allData.push({
+      id:d.id,
+      ...d.data()
+    });
+  });
+
+  renderAll();
+}
+
+function skillText3(a,b,c){
+  return `${a || 0}-${b || 0}-${c || 0}`;
+}
+
+function isSkill5(a){
+  return Number(a) === 5;
+}
+
+function is555(a,b,c){
+  return Number(a) === 5 &&
+         Number(b) === 5 &&
+         Number(c) === 5;
+}
+
+function isWeapon10(a){
+  return Number(a || 0) >= 10;
+}
+
+function petsList(p){
+  return Array.isArray(p.pets) ? p.pets : [];
+}
+
+function hasPet(p,name){
+  return petsList(p).some(pet => pet.name === name);
+}
+
+function hasPetLv10(p){
+  return petsList(p).some(pet => Number(pet.skillLevel || 0) >= 10);
+}
+
+function petMaxSkillLevel(p){
+  const pets = petsList(p);
+  if(pets.length === 0) return 0;
+
+  return Math.max(
+    ...pets.map(pet=>Number(pet.skillLevel || 0))
+  );
+}
+
+function petHtml(p){
+  const pets = petsList(p);
+
+  if(pets.length === 0){
+    return "<p>ペット登録なし</p>";
+  }
+
+  return pets.map((pet,index)=>`
+    <div class="small">
+      <p><strong>ペット${index + 1}：${pet.name || "-"}</strong></p>
+      <p>戦闘スキルLv：${pet.skillLevel || 0}</p>
+    </div>
+    <hr>
+  `).join("");
+}
+
+function petSummary(p){
+  const pets = petsList(p);
+
+  if(pets.length === 0){
+    return "ペット登録なし";
+  }
+
+  return pets.map(pet=>
+    `${pet.name || "-"} Lv${pet.skillLevel || 0}`
+  ).join("、");
+}
+
+function renderCard(p,rank=null){
+  const pets = petsList(p);
+  const maxPetLv = petMaxSkillLevel(p);
+  const title = rank ? `${rank}位 ${p.playerName || "-"}` : `${p.playerName || "-"}`;
+
+  return `
+    <div class="card">
+      <h3>${title}</h3>
+
+      <p>集結容量：${Number(p.rallyCapacity || 0).toLocaleString()}</p>
+      <p>集結主：${p.canRally || "-"}</p>
+      <p>ペット：${pets.length}匹 / 最大戦闘スキルLv${maxPetLv}</p>
+      <p>ペット内容：${petSummary(p)}</p>
+
+      <details>
+        <summary>英雄詳細を見る</summary>
+
+        <hr>
+
+        <p>盾：${p.shieldHero || "-"} ★${p.shieldStar || 0} / ${skillText3(p.shieldSkill1,p.shieldSkill2,p.shieldSkill3)} / 専用${p.shieldWeapon || 0}</p>
+        <p>槍：${p.spearHero || "-"} ★${p.spearStar || 0} / ${skillText3(p.spearSkill1,p.spearSkill2,p.spearSkill3)} / 専用${p.spearWeapon || 0}</p>
+        <p>弓：${p.archerHero || "-"} ★${p.archerStar || 0} / ${skillText3(p.archerSkill1,p.archerSkill2,p.archerSkill3)} / 専用${p.archerWeapon || 0}</p>
+
+        <hr>
+
+        <p>ローガン：★${p.loganStar || 0} / ${skillText3(p.loganSkill1,p.loganSkill2,p.loganSkill3)} / 専用${p.loganWeapon || 0}</p>
+        <p>グレッグ：★${p.gregStar || 0} / ${skillText3(p.gregSkill1,p.gregSkill2,p.gregSkill3)} / 専用${p.gregWeapon || 0}</p>
+        <p>ジェロニモ：★${p.jeronimoStar || 0} / ${skillText3(p.jeronimoSkill1,p.jeronimoSkill2,p.jeronimoSkill3)} / 専用${p.jeronimoWeapon || 0}</p>
+
+        <hr>
+
+        <p>ジェシー：★${p.jessieStar || 0} / スキル${p.jessieSkill1 || 0}</p>
+        <p>パトリック：★${p.patrickStar || 0} / スキル${p.patrickSkill1 || 0}</p>
+        <p>ソユン：★${p.soyoonStar || 0} / スキル${p.soyoonSkill1 || 0}</p>
+        <p>リンセツ：★${p.rinsetsuStar || 0} / スキル${p.rinsetsuSkill1 || 0}</p>
+
+        <p>メモ：${p.memo || "-"}</p>
+      </details>
+
+      <details>
+        <summary>🐾 ペット詳細を見る</summary>
+        ${petHtml(p)}
+      </details>
+
+      <button onclick="removePlayer('${p.id}')">削除</button>
+    </div>
+  `;
+}
+
+function renderList(id,list,withRank=false){
+  const div = document.getElementById(id);
+
+  if(list.length === 0){
+    div.innerHTML = `<p>該当なし</p>`;
+    return;
+  }
+
+  div.innerHTML = list.map((p,index)=>
+    renderCard(p,withRank ? index + 1 : null)
+  ).join("");
+}
+
+function renderNameList(id,list,extraFn=null){
+  const div = document.getElementById(id);
+
+  if(list.length === 0){
+    div.innerHTML = "該当なし";
+    return;
+  }
+
+  div.innerHTML =
+    list.map(x => {
+      const extra = extraFn ? ` <span class="small">${extraFn(x)}</span>` : "";
+      return `<p>${x.playerName || "-"}${extra}</p>`;
+    }).join("");
+}
+
+window.searchPlayer = function(){
+  const keyword =
+    document.getElementById("searchName")
+    .value
+    .trim()
+    .toLowerCase();
+
+  if(!keyword){
+    document.getElementById("searchResult").innerHTML = "";
+    return;
+  }
+
+  const result =
+    allData.filter(x =>
+      (x.playerName || "")
+      .toLowerCase()
+      .includes(keyword)
+    );
+
+  renderList("searchResult",result);
+}
+
+window.clearSearch = function(){
+  document.getElementById("searchName").value = "";
+  document.getElementById("searchResult").innerHTML = "";
+}
+
+function renderAll(){
+  const capacityRanking =
+    [...allData].sort((a,b)=>
+      Number(b.rallyCapacity || 0) - Number(a.rallyCapacity || 0)
+    );
+
+  const rallyMembers =
+    allData.filter(x => x.canRally === "可能");
+
+  const petMembers =
+    allData.filter(x => petsList(x).length > 0);
+
+  const snowLeopardMembers =
+    allData.filter(x => hasPet(x,"雪豹"));
+
+  const birdMembers =
+    allData.filter(x => hasPet(x,"巨鳥"));
+
+  const petLv10Members =
+    allData.filter(x => hasPetLv10(x));
+
+  const logan555 =
+    allData.filter(x =>
+      is555(
+        x.loganSkill1,
+        x.loganSkill2,
+        x.loganSkill3
+      )
+    );
+
+  const greg555 =
+    allData.filter(x =>
+      is555(
+        x.gregSkill1,
+        x.gregSkill2,
+        x.gregSkill3
+      )
+    );
+
+  const jeronimo555 =
+    allData.filter(x =>
+      is555(
+        x.jeronimoSkill1,
+        x.jeronimoSkill2,
+        x.jeronimoSkill3
+      )
+    );
+
+  const loganWeapon10 =
+    allData.filter(x => isWeapon10(x.loganWeapon));
+
+  const gregWeapon10 =
+    allData.filter(x => isWeapon10(x.gregWeapon));
+
+  const jeronimoWeapon10 =
+    allData.filter(x => isWeapon10(x.jeronimoWeapon));
+
+  const jessie5 =
+    allData.filter(x => isSkill5(x.jessieSkill1));
+
+  const patrick5 =
+    allData.filter(x => isSkill5(x.patrickSkill1));
+
+  const soyoon5 =
+    allData.filter(x => isSkill5(x.soyoonSkill1));
+
+  const rinsetsu5 =
+    allData.filter(x => isSkill5(x.rinsetsuSkill1));
+
+  document.getElementById("totalCount").textContent =
+    "回答人数：" + allData.length + "人";
+
+  document.getElementById("rallyCount").textContent =
+    "集結主可能：" + rallyMembers.length + "人";
+
+  document.getElementById("petCount").textContent =
+    "ペット登録者：" + petMembers.length + "人";
+
+  document.getElementById("snowLeopardCount").textContent =
+    "雪豹登録者：" + snowLeopardMembers.length + "人";
+
+  document.getElementById("birdCount").textContent =
+    "巨鳥登録者：" + birdMembers.length + "人";
+
+  renderList("capacityRanking",capacityRanking,true);
+  renderList("rallyMembers",rallyMembers);
+  renderList("petMembers",petMembers);
+
+  renderNameList("snowLeopardMembers",snowLeopardMembers,x=>petSummary(x));
+  renderNameList("birdMembers",birdMembers,x=>petSummary(x));
+  renderNameList("petLv10Members",petLv10Members,x=>petSummary(x));
+
+  renderNameList("logan555",logan555);
+  renderNameList("greg555",greg555);
+  renderNameList("jeronimo555",jeronimo555);
+
+  renderNameList("loganWeapon10",loganWeapon10);
+  renderNameList("gregWeapon10",gregWeapon10);
+  renderNameList("jeronimoWeapon10",jeronimoWeapon10);
+
+  renderNameList("jessie5",jessie5);
+  renderNameList("patrick5",patrick5);
+  renderNameList("soyoon5",soyoon5);
+  renderNameList("rinsetsu5",rinsetsu5);
+
+  renderList("allMembers",allData);
+}
+
+window.removePlayer = async function(id){
+  const password = prompt("管理パスワードを入力してください");
+
+  if(password !== ADMIN_PASSWORD){
+    alert("パスワードが違います");
+    return;
+  }
+
+  if(!confirm("削除しますか？")) return;
+
+  await deleteDoc(
+    doc(db,"rallyResponses",id)
+  );
+
+  loadData();
+}
+
+loadData();
+</script>
+
+</body>
+</html>

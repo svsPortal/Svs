@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>集結情報 回答フォーム</title>
+
+<style>
+body{margin:0;background:#071a2d;color:white;font-family:sans-serif;padding:20px;}
+h1,h2,h3{color:#00d4ff;text-align:center;}
+.card{max-width:700px;margin:20px auto;background:#132b45;padding:20px;border-radius:12px;}
+input,select,textarea,button{width:100%;padding:12px;margin-top:10px;border:none;border-radius:8px;box-sizing:border-box;}
+button{background:#00d4ff;color:black;font-weight:bold;cursor:pointer;}
+.load-btn{background:#ffaa00;}
+.add-btn{background:#66ff99;color:black;}
+.delete-btn{background:#ff4444;color:white;}
+.pet-card{background:#173754;padding:15px;border-radius:12px;margin-top:15px;}
+a{color:#00d4ff;}
+</style>
+</head>
+
+<body>
+
+<h1>⚔ 集結情報 回答フォーム</h1>
+
+<div class="card">
+  <h2>基本情報</h2>
+
+  <input id="playerName" placeholder="プレイヤー名">
+
+  <button class="load-btn" type="button" onclick="loadPlayer()">
+    前回の情報を読込
+  </button>
+
+  <input id="rallyCapacity" type="number" placeholder="最大集結容量">
+
+  <select id="canRally">
+    <option value="可能">集結主可能</option>
+    <option value="不可">集結主不可</option>
+  </select>
+</div>
+
+<div class="card">
+  <h2>盾英雄</h2>
+  <input id="shieldHero" placeholder="英雄名">
+  <select id="shieldStar"></select>
+  <select id="shieldSkill1"></select>
+  <select id="shieldSkill2"></select>
+  <select id="shieldSkill3"></select>
+  <select id="shieldWeapon"></select>
+</div>
+
+<div class="card">
+  <h2>槍英雄</h2>
+  <input id="spearHero" placeholder="英雄名">
+  <select id="spearStar"></select>
+  <select id="spearSkill1"></select>
+  <select id="spearSkill2"></select>
+  <select id="spearSkill3"></select>
+  <select id="spearWeapon"></select>
+</div>
+
+<div class="card">
+  <h2>弓英雄</h2>
+  <input id="archerHero" placeholder="英雄名">
+  <select id="archerStar"></select>
+  <select id="archerSkill1"></select>
+  <select id="archerSkill2"></select>
+  <select id="archerSkill3"></select>
+  <select id="archerWeapon"></select>
+</div>
+
+<div class="card">
+  <h2>ローガン</h2>
+  <select id="loganStar"></select>
+  <select id="loganSkill1"></select>
+  <select id="loganSkill2"></select>
+  <select id="loganSkill3"></select>
+  <select id="loganWeapon"></select>
+</div>
+
+<div class="card">
+  <h2>グレッグ</h2>
+  <select id="gregStar"></select>
+  <select id="gregSkill1"></select>
+  <select id="gregSkill2"></select>
+  <select id="gregSkill3"></select>
+  <select id="gregWeapon"></select>
+</div>
+
+<div class="card">
+  <h2>ジェロニモ</h2>
+  <select id="jeronimoStar"></select>
+  <select id="jeronimoSkill1"></select>
+  <select id="jeronimoSkill2"></select>
+  <select id="jeronimoSkill3"></select>
+  <select id="jeronimoWeapon"></select>
+</div>
+
+<div class="card">
+  <h2>ジェシー</h2>
+  <select id="jessieStar"></select>
+  <select id="jessieSkill1"></select>
+</div>
+
+<div class="card">
+  <h2>パトリック</h2>
+  <select id="patrickStar"></select>
+  <select id="patrickSkill1"></select>
+</div>
+
+<div class="card">
+  <h2>ソユン</h2>
+  <select id="soyoonStar"></select>
+  <select id="soyoonSkill1"></select>
+</div>
+
+<div class="card">
+  <h2>リンセツ</h2>
+  <select id="rinsetsuStar"></select>
+  <select id="rinsetsuSkill1"></select>
+</div>
+
+<div class="card">
+  <h2>🐾 ペット情報</h2>
+  <p>戦闘バフがあるペットだけ追加してください。</p>
+
+  <div id="petsArea"></div>
+
+  <button class="add-btn" type="button" onclick="addPet()">
+    ＋ ペットを追加
+  </button>
+</div>
+
+<div class="card">
+  <h2>メモ</h2>
+
+  <textarea id="memo" placeholder="メモ"></textarea>
+
+  <button id="submitBtn" type="button">
+    送信 / 更新
+  </button>
+
+  <p>
+    <a href="index.html">TOPへ戻る</a>
+  </p>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD826LkOY5iKXH04agBlc9IPHpeBO4C6uM",
+  authDomain: "svsv-54551.firebaseapp.com",
+  projectId: "svsv-54551",
+  storageBucket: "svsv-54551.firebasestorage.app",
+  messagingSenderId: "948158589591",
+  appId: "1:948158589591:web:53b3a4430d0629492597d2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let petCount = 0;
+
+const PET_NAMES = [
+  "雪豹",
+  "巨鳥"
+];
+
+function makeSelect(id,max,label){
+  const el = document.getElementById(id);
+  if(!el) return;
+
+  el.innerHTML = "";
+
+  for(let i=0;i<=max;i++){
+    el.innerHTML += `<option value="${i}">${label}${i}</option>`;
+  }
+}
+
+function setupSelects(){
+  const starIds = [
+    "shieldStar","spearStar","archerStar",
+    "loganStar","gregStar","jeronimoStar",
+    "jessieStar","patrickStar","soyoonStar","rinsetsuStar"
+  ];
+
+  starIds.forEach(id => makeSelect(id,5,"星"));
+
+  const skillIds = [
+    "shieldSkill1","shieldSkill2","shieldSkill3",
+    "spearSkill1","spearSkill2","spearSkill3",
+    "archerSkill1","archerSkill2","archerSkill3",
+    "loganSkill1","loganSkill2","loganSkill3",
+    "gregSkill1","gregSkill2","gregSkill3",
+    "jeronimoSkill1","jeronimoSkill2","jeronimoSkill3",
+    "jessieSkill1","patrickSkill1","soyoonSkill1","rinsetsuSkill1"
+  ];
+
+  skillIds.forEach(id => makeSelect(id,5,"スキル"));
+
+  const weaponIds = [
+    "shieldWeapon","spearWeapon","archerWeapon",
+    "loganWeapon","gregWeapon","jeronimoWeapon"
+  ];
+
+  weaponIds.forEach(id => makeSelect(id,10,"専用"));
+}
+
+setupSelects();
+
+function val(id){
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : "";
+}
+
+function num(id){
+  const el = document.getElementById(id);
+  return el ? Number(el.value || 0) : 0;
+}
+
+function setVal(id,value){
+  const el = document.getElementById(id);
+  if(el){
+    el.value = value ?? "";
+  }
+}
+
+function petNameOptions(selectedName = ""){
+  let html = `<option value="">ペットを選択</option>`;
+
+  PET_NAMES.forEach(name=>{
+    html += `
+      <option value="${name}" ${selectedName === name ? "selected" : ""}>
+        ${name}
+      </option>
+    `;
+  });
+
+  return html;
+}
+
+function petSkillOptions(selectedLevel = 0){
+  let html = "";
+
+  for(let i=0;i<=10;i++){
+    html += `
+      <option value="${i}" ${Number(selectedLevel) === i ? "selected" : ""}>
+        戦闘スキルLv${i}
+      </option>
+    `;
+  }
+
+  return html;
+}
+
+window.addPet = function(petData = null){
+  petCount++;
+
+  const id = petCount;
+
+  const div = document.createElement("div");
+  div.className = "pet-card";
+  div.dataset.petId = id;
+
+  const selectedName = petData?.name || "";
+  const selectedSkill = petData?.skillLevel || 0;
+
+  div.innerHTML = `
+    <h3>ペット${id}</h3>
+
+    <select id="pet${id}Name">
+      ${petNameOptions(selectedName)}
+    </select>
+
+    <select id="pet${id}SkillLevel">
+      ${petSkillOptions(selectedSkill)}
+    </select>
+
+    <button class="delete-btn" type="button" onclick="removePet(this)">
+      このペットを削除
+    </button>
+  `;
+
+  document.getElementById("petsArea").appendChild(div);
+}
+
+window.removePet = function(button){
+  const card = button.closest(".pet-card");
+
+  if(card){
+    card.remove();
+  }
+}
+
+function getPets(){
+  const pets = [];
+
+  const cards =
+    document.querySelectorAll(".pet-card");
+
+  cards.forEach(card=>{
+    const id = card.dataset.petId;
+
+    const name =
+      val(`pet${id}Name`);
+
+    const skillLevel =
+      num(`pet${id}SkillLevel`);
+
+    if(name){
+      pets.push({
+        name,
+        skillLevel
+      });
+    }
+  });
+
+  return pets;
+}
+
+function clearPets(){
+  document.getElementById("petsArea").innerHTML = "";
+  petCount = 0;
+}
+
+function loadPets(pets){
+  clearPets();
+
+  if(!Array.isArray(pets)){
+    return;
+  }
+
+  pets.forEach(pet=>{
+    addPet(pet);
+  });
+}
+
+window.loadPlayer = async function(){
+  const playerName = val("playerName");
+
+  if(!playerName){
+    alert("プレイヤー名を入力してください");
+    return;
+  }
+
+  const snap = await getDoc(
+    doc(db,"rallyResponses",playerName)
+  );
+
+  if(!snap.exists()){
+    alert("前回データがありません");
+    return;
+  }
+
+  const d = snap.data();
+
+  setVal("rallyCapacity",d.rallyCapacity);
+  setVal("canRally",d.canRally || "可能");
+
+  setVal("shieldHero",d.shieldHero);
+  setVal("shieldStar",d.shieldStar);
+  setVal("shieldSkill1",d.shieldSkill1);
+  setVal("shieldSkill2",d.shieldSkill2);
+  setVal("shieldSkill3",d.shieldSkill3);
+  setVal("shieldWeapon",d.shieldWeapon);
+
+  setVal("spearHero",d.spearHero);
+  setVal("spearStar",d.spearStar);
+  setVal("spearSkill1",d.spearSkill1);
+  setVal("spearSkill2",d.spearSkill2);
+  setVal("spearSkill3",d.spearSkill3);
+  setVal("spearWeapon",d.spearWeapon);
+
+  setVal("archerHero",d.archerHero);
+  setVal("archerStar",d.archerStar);
+  setVal("archerSkill1",d.archerSkill1);
+  setVal("archerSkill2",d.archerSkill2);
+  setVal("archerSkill3",d.archerSkill3);
+  setVal("archerWeapon",d.archerWeapon);
+
+  setVal("loganStar",d.loganStar);
+  setVal("loganSkill1",d.loganSkill1);
+  setVal("loganSkill2",d.loganSkill2);
+  setVal("loganSkill3",d.loganSkill3);
+  setVal("loganWeapon",d.loganWeapon);
+
+  setVal("gregStar",d.gregStar);
+  setVal("gregSkill1",d.gregSkill1);
+  setVal("gregSkill2",d.gregSkill2);
+  setVal("gregSkill3",d.gregSkill3);
+  setVal("gregWeapon",d.gregWeapon);
+
+  setVal("jeronimoStar",d.jeronimoStar);
+  setVal("jeronimoSkill1",d.jeronimoSkill1);
+  setVal("jeronimoSkill2",d.jeronimoSkill2);
+  setVal("jeronimoSkill3",d.jeronimoSkill3);
+  setVal("jeronimoWeapon",d.jeronimoWeapon);
+
+  setVal("jessieStar",d.jessieStar);
+  setVal("jessieSkill1",d.jessieSkill1);
+
+  setVal("patrickStar",d.patrickStar);
+  setVal("patrickSkill1",d.patrickSkill1);
+
+  setVal("soyoonStar",d.soyoonStar);
+  setVal("soyoonSkill1",d.soyoonSkill1);
+
+  setVal("rinsetsuStar",d.rinsetsuStar);
+  setVal("rinsetsuSkill1",d.rinsetsuSkill1);
+
+  loadPets(d.pets);
+
+  setVal("memo",d.memo);
+
+  alert("前回の情報を読み込みました");
+}
+
+async function submitRally(){
+  const playerName = val("playerName");
+
+  if(!playerName){
+    alert("プレイヤー名を入力してください");
+    return;
+  }
+
+  const data = {
+    playerName,
+    rallyCapacity:num("rallyCapacity"),
+    canRally:val("canRally"),
+
+    shieldHero:val("shieldHero"),
+    shieldStar:num("shieldStar"),
+    shieldSkill1:num("shieldSkill1"),
+    shieldSkill2:num("shieldSkill2"),
+    shieldSkill3:num("shieldSkill3"),
+    shieldWeapon:num("shieldWeapon"),
+
+    spearHero:val("spearHero"),
+    spearStar:num("spearStar"),
+    spearSkill1:num("spearSkill1"),
+    spearSkill2:num("spearSkill2"),
+    spearSkill3:num("spearSkill3"),
+    spearWeapon:num("spearWeapon"),
+
+    archerHero:val("archerHero"),
+    archerStar:num("archerStar"),
+    archerSkill1:num("archerSkill1"),
+    archerSkill2:num("archerSkill2"),
+    archerSkill3:num("archerSkill3"),
+    archerWeapon:num("archerWeapon"),
+
+    loganStar:num("loganStar"),
+    loganSkill1:num("loganSkill1"),
+    loganSkill2:num("loganSkill2"),
+    loganSkill3:num("loganSkill3"),
+    loganWeapon:num("loganWeapon"),
+
+    gregStar:num("gregStar"),
+    gregSkill1:num("gregSkill1"),
+    gregSkill2:num("gregSkill2"),
+    gregSkill3:num("gregSkill3"),
+    gregWeapon:num("gregWeapon"),
+
+    jeronimoStar:num("jeronimoStar"),
+    jeronimoSkill1:num("jeronimoSkill1"),
+    jeronimoSkill2:num("jeronimoSkill2"),
+    jeronimoSkill3:num("jeronimoSkill3"),
+    jeronimoWeapon:num("jeronimoWeapon"),
+
+    jessieStar:num("jessieStar"),
+    jessieSkill1:num("jessieSkill1"),
+
+    patrickStar:num("patrickStar"),
+    patrickSkill1:num("patrickSkill1"),
+
+    soyoonStar:num("soyoonStar"),
+    soyoonSkill1:num("soyoonSkill1"),
+
+    rinsetsuStar:num("rinsetsuStar"),
+    rinsetsuSkill1:num("rinsetsuSkill1"),
+
+    pets:getPets(),
+
+    memo:val("memo"),
+    updatedAt:new Date().toISOString()
+  };
+
+  await setDoc(
+    doc(db,"rallyResponses",playerName),
+    data
+  );
+
+  alert("保存しました");
+  location.href = "index.html";
+}
+
+document
+  .getElementById("submitBtn")
+  .addEventListener("click", submitRally);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SVS参加アンケート</title>
+
+<style>
+body{
+  margin:0;
+  background:#071a2d;
+  color:white;
+  font-family:sans-serif;
+  padding:20px;
+}
+
+h1,h2{
+  color:#00d4ff;
+  text-align:center;
+}
+
+.card{
+  max-width:650px;
+  margin:20px auto;
+  background:#132b45;
+  padding:20px;
+  border-radius:12px;
+}
+
+input,select,textarea,button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+  box-sizing:border-box;
+}
+
+button{
+  background:#00d4ff;
+  color:black;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.load-btn{
+  background:#ffaa00;
+}
+
+a{
+  color:#00d4ff;
+}
+</style>
+</head>
+
+<body>
+
+<h1>⚔ SVS参加アンケート</h1>
+
+<div class="card">
+  <h2>基本情報</h2>
+
+  <input id="playerName" placeholder="プレイヤー名">
+
+  <button class="load-btn" type="button" onclick="loadPlayer()">
+    前回の情報を読込
+  </button>
+
+  <select id="alliance">
+    <option value="">同盟を選択</option>
+    <option value="TKN">TKN</option>
+    <option value="AAA">AAA</option>
+    <option value="xox">xox</option>
+    <option value="HWS">HWS</option>
+    <option value="TKG">TKG</option>
+    <option value="ACG">ACG</option>
+    <option value="ICE">ICE</option>
+  </select>
+
+  <input id="power" type="number" placeholder="戦力">
+</div>
+
+<div class="card">
+  <h2>参加可否</h2>
+
+  <select id="status">
+    <option value="未回答">未回答</option>
+    <option value="参加">参加</option>
+    <option value="途中参加">途中参加</option>
+    <option value="不参加">不参加</option>
+  </select>
+</div>
+
+<div class="card">
+  <h2>兵士Tier</h2>
+
+  <select id="shieldTier">
+    <option value="">盾Tierを選択</option>
+    <option value="T9">T9</option>
+    <option value="T10">T10</option>
+    <option value="FC1">FC1</option>
+    <option value="FC2">FC2</option>
+    <option value="FC3">FC3</option>
+  </select>
+
+  <select id="spearTier">
+    <option value="">槍Tierを選択</option>
+    <option value="T9">T9</option>
+    <option value="T10">T10</option>
+    <option value="FC1">FC1</option>
+    <option value="FC2">FC2</option>
+    <option value="FC3">FC3</option>
+  </select>
+
+  <select id="archerTier">
+    <option value="">弓Tierを選択</option>
+    <option value="T9">T9</option>
+    <option value="T10">T10</option>
+    <option value="FC1">FC1</option>
+    <option value="FC2">FC2</option>
+    <option value="FC3">FC3</option>
+  </select>
+</div>
+
+<div class="card">
+  <h2>メモ</h2>
+
+  <textarea id="note" placeholder="自由記入"></textarea>
+
+  <button id="submitBtn" type="button">
+    送信 / 更新
+  </button>
+
+  <p>
+    <a href="index.html">TOPへ戻る</a>
+  </p>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  setDoc,
+  updateDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD826LkOY5iKXH04agBlc9IPHpeBO4C6uM",
+  authDomain: "svsv-54551.firebaseapp.com",
+  projectId: "svsv-54551",
+  storageBucket: "svsv-54551.firebasestorage.app",
+  messagingSenderId: "948158589591",
+  appId: "1:948158589591:web:53b3a4430d0629492597d2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let loadedDocId = null;
+
+function val(id){
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : "";
+}
+
+function num(id){
+  const el = document.getElementById(id);
+  return el ? Number(el.value || 0) : 0;
+}
+
+function setVal(id,value){
+  const el = document.getElementById(id);
+  if(el){
+    el.value = value ?? "";
+  }
+}
+
+function tierFlags(tier,type){
+  return {
+    [`t9${type}`]: tier === "T9",
+    [`t10${type}`]: tier === "T10",
+    [`fc1${type}`]: tier === "FC1",
+    [`fc2${type}`]: tier === "FC2",
+    [`fc3${type}`]: tier === "FC3"
+  };
+}
+
+function getTierFromData(d,type){
+  if(d[`fc3${type}`]) return "FC3";
+  if(d[`fc2${type}`]) return "FC2";
+  if(d[`fc1${type}`]) return "FC1";
+  if(d[`t10${type}`]) return "T10";
+  if(d[`t9${type}`]) return "T9";
+  return "";
+}
+
+async function findPlayerDoc(playerName){
+  const snapshot = await getDocs(
+    collection(db,"svsResponses")
+  );
+
+  let found = null;
+
+  snapshot.forEach(docSnap=>{
+    const data = docSnap.data();
+
+    if((data.playerName || "") === playerName){
+      found = {
+        id:docSnap.id,
+        data:data
+      };
+    }
+  });
+
+  return found;
+}
+
+window.loadPlayer = async function(){
+  const playerName = val("playerName");
+
+  if(!playerName){
+    alert("プレイヤー名を入力してください");
+    return;
+  }
+
+  const found = await findPlayerDoc(playerName);
+
+  if(!found){
+    loadedDocId = null;
+    alert("前回データがありません");
+    return;
+  }
+
+  loadedDocId = found.id;
+
+  const d = found.data;
+
+  setVal("alliance",d.alliance);
+  setVal("power",d.power);
+  setVal("status",d.status || "未回答");
+  setVal("note",d.note);
+
+  setVal("shieldTier",getTierFromData(d,"Shield"));
+  setVal("spearTier",getTierFromData(d,"Spear"));
+  setVal("archerTier",getTierFromData(d,"Archer"));
+
+  alert("前回の情報を読み込みました");
+}
+
+async function submitSvs(){
+  const playerName = val("playerName");
+
+  if(!playerName){
+    alert("プレイヤー名を入力してください");
+    return;
+  }
+
+  if(!val("alliance")){
+    alert("同盟を選択してください");
+    return;
+  }
+
+  if(!val("shieldTier") || !val("spearTier") || !val("archerTier")){
+    alert("盾・槍・弓のTierをすべて選択してください");
+    return;
+  }
+
+  let targetDocId = loadedDocId;
+
+  if(!targetDocId){
+    const found = await findPlayerDoc(playerName);
+    if(found){
+      targetDocId = found.id;
+    }else{
+      targetDocId = playerName;
+    }
+  }
+
+  const data = {
+    playerName,
+    alliance:val("alliance"),
+    power:num("power"),
+    status:val("status"),
+    note:val("note"),
+
+    ...tierFlags(val("shieldTier"),"Shield"),
+    ...tierFlags(val("spearTier"),"Spear"),
+    ...tierFlags(val("archerTier"),"Archer"),
+
+    updatedAt:new Date().toISOString()
+  };
+
+  await setDoc(
+    doc(db,"svsResponses",targetDocId),
+    data,
+    { merge:true }
+  );
+
+  alert("保存しました");
+  location.href = "index.html";
+}
+
+document
+  .getElementById("submitBtn")
+  .addEventListener("click", submitSvs);
+</script>
+
+</body>
+</html>
