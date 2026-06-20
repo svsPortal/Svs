@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>王国箱 振り分け管理</title>
 
-<script src="auth.js"></script>
-
 <style>
 body{margin:0;background:#071a2d;color:white;font-family:sans-serif;padding:20px;}
 h1,h2,h3{color:#00d4ff;text-align:center;}
@@ -272,6 +270,18 @@ function getLowestTier(p){
   return "未分類";
 }
 
+function getOneTroopTier(p,type){
+  if(p[`fc3${type}`]) return "FC3";
+  if(p[`fc2${type}`]) return "FC2";
+  if(p[`fc1${type}`]) return "FC1";
+  if(p[`t10${type}`]) return "T10";
+  if(p[`t9${type}`]) return "T9";
+
+  const key = type === "Archer" ? "archer" : type.toLowerCase();
+
+  return p[`${key}Tier`] || p[key] || "-";
+}
+
 function tierRank(tier){
   if(tier === "FC3") return 5;
   if(tier === "FC2") return 4;
@@ -507,6 +517,7 @@ function playerCard(p){
 
       <p>同盟：${p.alliance || "-"}</p>
       <p>Tier：${tier}</p>
+      <p>盾：${getOneTroopTier(p,"Shield")} / 槍：${getOneTroopTier(p,"Spear")} / 弓：${getOneTroopTier(p,"Archer")}</p>
       <p>参加：${p.status || "-"}</p>
       <p>集結容量：${Number(rally.rallyCapacity || 0).toLocaleString()}</p>
       <p>集結主：${rally.canRally || "-"}</p>
