@@ -1,6 +1,7 @@
 const ALLOWED_DISCORD_USERS = [
   "984961103954055208",
   "371500310792765460",
+  "710778017710080021",
 ];
 
 (function checkDiscordLogin(){
