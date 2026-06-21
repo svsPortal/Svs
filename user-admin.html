@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discord ID 管理</title>
+
+<style>
+body{
+  margin:0;
+  background:#071a2d;
+  color:white;
+  font-family:sans-serif;
+  padding:20px;
+}
+
+h1,h2{
+  text-align:center;
+  color:#00d4ff;
+}
+
+.section{
+  max-width:1000px;
+  margin:20px auto;
+  background:#132b45;
+  padding:20px;
+  border-radius:14px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:12px;
+}
+
+input,select,button{
+  width:100%;
+  padding:11px;
+  margin-top:8px;
+  border:none;
+  border-radius:8px;
+  box-sizing:border-box;
+}
+
+input,select{
+  background:#071a2d;
+  color:white;
+  border:1px solid #35516c;
+}
+
+button{
+  background:#00d4ff;
+  color:black;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button.danger{
+  background:#dc2626;
+  color:white;
+}
+
+button.gray{
+  background:#6b7280;
+  color:white;
+}
+
+.card{
+  background:#173754;
+  padding:15px;
+  border-radius:12px;
+  line-height:1.7;
+}
+
+.small{
+  color:#ddd;
+  font-size:13px;
+}
+
+.top-buttons{
+  max-width:1000px;
+  margin:0 auto 20px auto;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+.top-buttons a,
+.top-buttons button{
+  width:auto;
+  background:#00d4ff;
+  color:black;
+  padding:10px 15px;
+  border-radius:10px;
+  text-decoration:none;
+  font-weight:bold;
+}
+
+.status-ok{
+  color:#66ff99;
+  font-weight:bold;
+}
+
+.status-ng{
+  color:#ff7777;
+  font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="top-buttons">
+  <a href="index.html">🏠 TOP</a>
+  <a href="svs-admin.html">⚔ SVS管理</a>
+  <a href="rally-admin.html">🔥 集結管理</a>
+  <a href="box-admin.html">📦 王国箱管理</a>
+  <button onclick="logoutDiscord()">🚪 ログアウト</button>
+</div>
+
+<h1>🔐 Discord ID 管理</h1>
+
+<div class="section">
+  <h2>👤 ログイン情報</h2>
+  <p id="loginInfo" class="small">確認中...</p>
+</div>
+
+<div class="section" id="adminArea" style="display:none;">
+  <h2>➕ 許可IDを追加・更新</h2>
+
+  <div class="grid">
+    <div>
+      <label>Discord ID</label>
+      <input id="discordId" placeholder="例：984961103954055208">
+    </div>
+
+    <div>
+      <label>表示名</label>
+      <input id="displayName" placeholder="例：Non">
+    </div>
+
+    <div>
+      <label>権限メモ</label>
+      <select id="role">
+        <option value="member">member</option>
+        <option value="admin">admin</option>
+        <option value="owner">owner</option>
+      </select>
+    </div>
+
+    <div>
+      <label>状態</label>
+      <select id="enabled">
+        <option value="true">有効</option>
+        <option value="false">無効</option>
+      </select>
+    </div>
+
+    <div>
+      <label>ID追加・削除権限</label>
+      <select id="canManageUsers">
+        <option value="false">なし</option>
+        <option value="true">あり</option>
+      </select>
+    </div>
+  </div>
+
+  <button onclick="saveUser()">保存する</button>
+  <button class="gray" onclick="clearForm()">入力クリア</button>
+</div>
+
+<div class="section" id="listArea" style="display:none;">
+  <h2>📋 許可済みユーザー一覧</h2>
+  <p class="small">
+    ※ 自分のIDを全て削除しても、auth.js内の復旧用IDは入れます。
+  </p>
+  <div class="grid" id="userList"></div>
+</div>
+
+<script>
+function logoutDiscord(){
+  localStorage.removeItem("discord_access_token");
+  localStorage.removeItem("discord_user_id");
+  localStorage.removeItem("discord_username");
+  sessionStorage.removeItem("nextPage");
+
+  location.href = "login.html";
+}
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD826LkOY5iKXH04agBlc9IPHpeBO4C6uM",
+  authDomain: "svsv-54551.firebaseapp.com",
+  projectId: "svsv-54551",
+  storageBucket: "svsv-54551.firebasestorage.app",
+  messagingSenderId: "948158589591",
+  appId: "1:948158589591:web:53b3a4430d0629492597d2"
+};
+
+const EMERGENCY_OWNER_IDS = [
+  "984961103954055208"
+];
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const loginUserId =
+  localStorage.getItem("discord_user_id");
+
+const loginUsername =
+  localStorage.getItem("discord_username") || "";
+
+let canManage = false;
+
+window.saveUser = saveUser;
+window.deleteUser = deleteUser;
+window.editUser = editUser;
+window.clearForm = clearForm;
+
+async function init(){
+
+  if(!loginUserId){
+
+    sessionStorage.setItem(
+      "nextPage",
+      "user-admin.html"
+    );
+
+    location.href = "login.html";
+    return;
+  }
+
+  const loginInfo =
+    document.getElementById("loginInfo");
+
+  if(EMERGENCY_OWNER_IDS.includes(loginUserId)){
+
+    canManage = true;
+
+    loginInfo.innerHTML =
+      `ログイン中：${escapeHtml(loginUsername || loginUserId)} / <span class="status-ok">復旧用owner</span>`;
+  }
+  else{
+
+    const snap =
+      await getDoc(
+        doc(db,"allowedDiscordUsers",loginUserId)
+      );
+
+    if(!snap.exists()){
+
+      loginInfo.innerHTML =
+        `<span class="status-ng">このアカウントはID管理ページの権限がありません。</span>`;
+
+      return;
+    }
+
+    const data = snap.data();
+
+    if(
+      data.enabled !== true ||
+      data.canManageUsers !== true
+    ){
+
+      loginInfo.innerHTML =
+        `<span class="status-ng">このアカウントはID追加・削除権限がありません。</span>`;
+
+      return;
+    }
+
+    canManage = true;
+
+    loginInfo.innerHTML =
+      `ログイン中：${escapeHtml(data.name || loginUsername || loginUserId)} / <span class="status-ok">ID管理権限あり</span>`;
+  }
+
+  document.getElementById("adminArea").style.display =
+    "block";
+
+  document.getElementById("listArea").style.display =
+    "block";
+
+  await loadUsers();
+}
+
+async function loadUsers(){
+
+  const snap =
+    await getDocs(
+      collection(db,"allowedDiscordUsers")
+    );
+
+  const users =
+    snap.docs
+    .map(d=>({
+      id:d.id,
+      ...d.data()
+    }))
+    .sort((a,b)=>
+      (a.name || a.id)
+      .localeCompare(b.name || b.id,"ja")
+    );
+
+  renderUsers(users);
+}
+
+function renderUsers(users){
+
+  const area =
+    document.getElementById("userList");
+
+  if(users.length === 0){
+
+    area.innerHTML = "<p>登録者なし</p>";
+    return;
+  }
+
+  area.innerHTML =
+    users.map(u=>`
+      <div class="card">
+        <strong>${escapeHtml(u.name || "-")}</strong>
+
+        <div class="small">
+          ID：${escapeHtml(u.id)}
+        </div>
+
+        <div>
+          権限：${escapeHtml(u.role || "member")}
+        </div>
+
+        <div>
+          状態：
+          ${
+            u.enabled === true
+            ? '<span class="status-ok">有効</span>'
+            : '<span class="status-ng">無効</span>'
+          }
+        </div>
+
+        <div>
+          ID管理：
+          ${
+            u.canManageUsers === true
+            ? '<span class="status-ok">あり</span>'
+            : 'なし'
+          }
+        </div>
+
+        <button onclick="editUser('${escapeAttr(u.id)}','${escapeAttr(u.name || "")}','${escapeAttr(u.role || "member")}','${u.enabled === true}','${u.canManageUsers === true}')">
+          編集
+        </button>
+
+        <button class="danger" onclick="deleteUser('${escapeAttr(u.id)}')">
+          削除
+        </button>
+      </div>
+    `).join("");
+}
+
+async function saveUser(){
+
+  if(!canManage) return;
+
+  const discordId =
+    document.getElementById("discordId")
+    .value
+    .trim();
+
+  const name =
+    document.getElementById("displayName")
+    .value
+    .trim();
+
+  const role =
+    document.getElementById("role").value;
+
+  const enabled =
+    document.getElementById("enabled").value === "true";
+
+  const canManageUsers =
+    document.getElementById("canManageUsers").value === "true";
+
+  if(!/^\d{15,25}$/.test(discordId)){
+
+    alert(
+      "Discord IDは15〜25桁の数字で入力してください"
+    );
+
+    return;
+  }
+
+  if(!name){
+
+    alert("表示名を入力してください");
+    return;
+  }
+
+  await setDoc(
+    doc(db,"allowedDiscordUsers",discordId),
+    {
+      discordId,
+      name,
+      role,
+      enabled,
+      canManageUsers,
+      updatedAt:serverTimestamp()
+    },
+    {
+      merge:true
+    }
+  );
+
+  alert("保存しました");
+
+  clearForm();
+
+  await loadUsers();
+}
+
+async function deleteUser(id){
+
+  if(!canManage) return;
+
+  if(!confirm("このIDを削除しますか？")) return;
+
+  await deleteDoc(
+    doc(db,"allowedDiscordUsers",id)
+  );
+
+  alert("削除しました");
+
+  await loadUsers();
+}
+
+function editUser(
+  id,
+  name,
+  role,
+  enabled,
+  canManageUsers
+){
+
+  document.getElementById("discordId").value =
+    id;
+
+  document.getElementById("displayName").value =
+    name;
+
+  document.getElementById("role").value =
+    role || "member";
+
+  document.getElementById("enabled").value =
+    String(enabled === "true");
+
+  document.getElementById("canManageUsers").value =
+    String(canManageUsers === "true");
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+}
+
+function clearForm(){
+
+  document.getElementById("discordId").value =
+    "";
+
+  document.getElementById("displayName").value =
+    "";
+
+  document.getElementById("role").value =
+    "member";
+
+  document.getElementById("enabled").value =
+    "true";
+
+  document.getElementById("canManageUsers").value =
+    "false";
+}
+
+function escapeHtml(value){
+
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function escapeAttr(value){
+
+  return escapeHtml(value)
+    .replaceAll("`","&#096;");
+}
+
+init().catch(error=>{
+
+  console.error(error);
+
+  alert(
+    "読み込みエラーです。Firestore設定を確認してください。"
+  );
+});
+</script>
+
+</body>
+</html>
