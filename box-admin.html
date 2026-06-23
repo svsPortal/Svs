@@ -135,6 +135,8 @@ button:active{
   font-weight:bold;
   line-height:1.2;
 }
+.badge-fc5{background:#7c3aed;color:#ede9fe;}
+.badge-fc4{background:#b91c1c;color:#fee2e2;}
 .badge-fc3{background:#0f766e;color:#d1fae5;}
 .badge-fc2{background:#854d0e;color:#fef3c7;}
 .badge-fc1{background:#9a3412;color:#ffedd5;}
@@ -350,6 +352,8 @@ hr{
 
   <h3>Tier</h3>
   <div class="filter-row" id="tierFilters">
+    <label><input type="checkbox" value="FC5" checked> FC5</label>
+    <label><input type="checkbox" value="FC4" checked> FC4</label>
     <label><input type="checkbox" value="FC3" checked> FC3</label>
     <label><input type="checkbox" value="FC2" checked> FC2</label>
     <label><input type="checkbox" value="FC1" checked> FC1</label>
@@ -535,11 +539,23 @@ function getRallyCapacity(p){
 }
 
 function getTierValue(p,type){
+  if(p[`fc5${type}`]) return 5;
+  if(p[`fc4${type}`]) return 4;
   if(p[`fc3${type}`]) return 3;
   if(p[`fc2${type}`]) return 2;
   if(p[`fc1${type}`]) return 1;
   if(p[`t10${type}`]) return 0;
   if(p[`t9${type}`]) return -1;
+
+  const key = type === "Archer" ? "archer" : type.toLowerCase();
+  const oldValue = p[`${key}Tier`] || p[key] || "";
+  if(oldValue === "FC5") return 5;
+  if(oldValue === "FC4") return 4;
+  if(oldValue === "FC3") return 3;
+  if(oldValue === "FC2") return 2;
+  if(oldValue === "FC1") return 1;
+  if(oldValue === "T10") return 0;
+  if(oldValue === "T9") return -1;
   return -2;
 }
 
@@ -550,6 +566,8 @@ function getLowestTier(p){
     getTierValue(p,"Archer")
   );
 
+  if(minTier === 5) return "FC5";
+  if(minTier === 4) return "FC4";
   if(minTier === 3) return "FC3";
   if(minTier === 2) return "FC2";
   if(minTier === 1) return "FC1";
@@ -559,6 +577,8 @@ function getLowestTier(p){
 }
 
 function getOneTroopTier(p,type){
+  if(p[`fc5${type}`]) return "FC5";
+  if(p[`fc4${type}`]) return "FC4";
   if(p[`fc3${type}`]) return "FC3";
   if(p[`fc2${type}`]) return "FC2";
   if(p[`fc1${type}`]) return "FC1";
@@ -571,6 +591,8 @@ function getOneTroopTier(p,type){
 }
 
 function tierRank(tier){
+  if(tier === "FC5") return 7;
+  if(tier === "FC4") return 6;
   if(tier === "FC3") return 5;
   if(tier === "FC2") return 4;
   if(tier === "FC1") return 3;
@@ -581,6 +603,8 @@ function tierRank(tier){
 
 
 function tierBadgeClass(tier){
+  if(tier === "FC5") return "badge-fc5";
+  if(tier === "FC4") return "badge-fc4";
   if(tier === "FC3") return "badge-fc3";
   if(tier === "FC2") return "badge-fc2";
   if(tier === "FC1") return "badge-fc1";
@@ -859,6 +883,10 @@ function playerCard(p){
         <p>リンセツ：${rally.rinsetsuSkill1 || 0}</p>
       </details>
 
+      <details>
+        <summary>🐾 ペット詳細を見る</summary>
+        <p>${petSummary(p)}</p>
+      </details>
     </div>
   `;
 }

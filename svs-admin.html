@@ -4,9 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SVS管理画面</title>
-
 <script src="auth.js"></script>
-
 <style>
 body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#111827;color:#f9fafb;}
 header{padding:18px;background:#1f2937;border-bottom:1px solid #374151;}
@@ -68,6 +66,8 @@ textarea{width:100%;min-height:120px;border-radius:10px;background:#111827;color
 <section class="card">
   <h2>Tier集計（参加＋途中参加のみ）</h2>
   <div class="stats">
+    <div class="stat"><div class="label">FC5</div><div id="fc5Count" class="num">0</div></div>
+    <div class="stat"><div class="label">FC4</div><div id="fc4Count" class="num">0</div></div>
     <div class="stat"><div class="label">FC3</div><div id="fc3Count" class="num">0</div></div>
     <div class="stat"><div class="label">FC2</div><div id="fc2Count" class="num">0</div></div>
     <div class="stat"><div class="label">FC1</div><div id="fc1Count" class="num">0</div></div>
@@ -89,6 +89,8 @@ textarea{width:100%;min-height:120px;border-radius:10px;background:#111827;color
 
     <select id="tierFilter" onchange="render()">
       <option value="all">全Tier</option>
+      <option value="FC5">FC5</option>
+      <option value="FC4">FC4</option>
       <option value="FC3">FC3</option>
       <option value="FC2">FC2</option>
       <option value="FC1">FC1</option>
@@ -167,6 +169,8 @@ function getMemo(player){return player.memo || player.note || player.comment || 
 function isActive(player){const s=getStatus(player);return s==="参加"||s==="途中参加";}
 
 function getTierValue(p,type){
+  if(p[`fc5${type}`]) return 5;
+  if(p[`fc4${type}`]) return 4;
   if(p[`fc3${type}`]) return 3;
   if(p[`fc2${type}`]) return 2;
   if(p[`fc1${type}`]) return 1;
@@ -175,6 +179,8 @@ function getTierValue(p,type){
 
   const key = type === "Archer" ? "archer" : type.toLowerCase();
   const oldValue = p[`${key}Tier`] || p[key] || "";
+  if(oldValue === "FC5") return 5;
+  if(oldValue === "FC4") return 4;
   if(oldValue === "FC3") return 3;
   if(oldValue === "FC2") return 2;
   if(oldValue === "FC1") return 1;
@@ -185,6 +191,8 @@ function getTierValue(p,type){
 
 function getLowestTier(p){
   const minTier = Math.min(getTierValue(p,"Shield"),getTierValue(p,"Spear"),getTierValue(p,"Archer"));
+  if(minTier === 5) return "FC5";
+  if(minTier === 4) return "FC4";
   if(minTier === 3) return "FC3";
   if(minTier === 2) return "FC2";
   if(minTier === 1) return "FC1";
@@ -194,6 +202,8 @@ function getLowestTier(p){
 }
 
 function getOneTroopTier(p,type){
+  if(p[`fc5${type}`]) return "FC5";
+  if(p[`fc4${type}`]) return "FC4";
   if(p[`fc3${type}`]) return "FC3";
   if(p[`fc2${type}`]) return "FC2";
   if(p[`fc1${type}`]) return "FC1";
@@ -303,6 +313,8 @@ function renderStats(){
   document.getElementById("noCount").textContent=no;
   document.getElementById("unansweredCount").textContent=unanswered;
 
+  document.getElementById("fc5Count").textContent=activePlayers.filter(p=>getLowestTier(p)==="FC5").length;
+  document.getElementById("fc4Count").textContent=activePlayers.filter(p=>getLowestTier(p)==="FC4").length;
   document.getElementById("fc3Count").textContent=activePlayers.filter(p=>getLowestTier(p)==="FC3").length;
   document.getElementById("fc2Count").textContent=activePlayers.filter(p=>getLowestTier(p)==="FC2").length;
   document.getElementById("fc1Count").textContent=activePlayers.filter(p=>getLowestTier(p)==="FC1").length;
@@ -369,7 +381,7 @@ function renderUnansweredByAlliance(){
 function renderTierNames(){
   const area=document.getElementById("tierNames");
   const activePlayers=allPlayers.filter(isActive);
-  const tiers=["FC3","FC2","FC1","T10","T9"];
+  const tiers=["FC5","FC4","FC3","FC2","FC1","T10","T9"];
 
   area.innerHTML=tiers.map(tier=>{
     const members=activePlayers.filter(p=>getLowestTier(p)===tier);
