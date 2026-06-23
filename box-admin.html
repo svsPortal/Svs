@@ -4,30 +4,317 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>王国箱 振り分け管理</title>
+<script src="auth.js"></script>
 
 <style>
-body{margin:0;background:#071a2d;color:white;font-family:sans-serif;padding:20px;}
-h1,h2,h3{color:#00d4ff;text-align:center;}
-.box,.filter,.summary{max-width:1100px;margin:20px auto;background:#132b45;padding:20px;border-radius:12px;}
-.filter-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:10px 0;}
-label{background:#173754;padding:8px 12px;border-radius:8px;}
-input,select,button{padding:10px;margin-top:8px;border:none;border-radius:8px;box-sizing:border-box;}
-input[type="text"],select{width:100%;}
-button{background:#00d4ff;color:black;font-weight:bold;cursor:pointer;width:100%;}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:15px;}
-.card{background:#173754;padding:15px;border-radius:12px;}
-.card h3{margin-top:0;color:#00d4ff;}
-.bulk{background:#ffaa00;color:black;}
-.full{color:#ff6666;font-weight:bold;}
-.ok{color:#66ff99;}
-.warn{color:#ffdd55;font-weight:bold;}
-.box-list{background:#173754;padding:12px;border-radius:10px;margin-top:10px;line-height:1.8;}
-.top-buttons{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
-.top-buttons a{background:#00d4ff;color:black;padding:10px 15px;border-radius:10px;text-decoration:none;font-weight:bold;}
-details{background:#10263d;padding:10px;border-radius:10px;margin-top:10px;}
-summary{cursor:pointer;color:#00d4ff;font-weight:bold;}
-hr{border:0;border-top:1px solid #35516c;margin:10px 0;}
-.small{font-size:13px;color:#ddd;}
+:root{
+  --bg:#071a2d;
+  --panel:#132b45;
+  --panel2:#173754;
+  --panel3:#10263d;
+  --line:#35516c;
+  --accent:#00d4ff;
+  --text:#ffffff;
+  --muted:#d7e2ec;
+  --warn:#ffdd55;
+  --danger:#ff6666;
+  --ok:#66ff99;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  padding:12px;
+}
+h1,h2,h3{
+  color:var(--accent);
+  text-align:center;
+}
+h1{
+  font-size:24px;
+  margin:14px 0;
+}
+h2{
+  font-size:19px;
+  margin:8px 0 14px;
+}
+h3{
+  font-size:15px;
+  margin:16px 0 8px;
+}
+.box,.filter,.summary{
+  max-width:1100px;
+  margin:12px auto;
+  background:var(--panel);
+  padding:14px;
+  border-radius:14px;
+  box-shadow:0 6px 18px rgba(0,0,0,.20);
+}
+.filter{
+  position:relative;
+}
+.filter-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  justify-content:center;
+  margin:8px 0;
+}
+label{
+  background:var(--panel2);
+  padding:8px 10px;
+  border-radius:999px;
+  font-size:13px;
+  line-height:1;
+}
+input,select,button{
+  padding:10px;
+  margin-top:8px;
+  border:none;
+  border-radius:10px;
+  box-sizing:border-box;
+  font-size:14px;
+}
+input[type="text"],select{
+  width:100%;
+  background:var(--bg);
+  color:white;
+  border:1px solid var(--line);
+}
+button{
+  background:var(--accent);
+  color:black;
+  font-weight:bold;
+  cursor:pointer;
+  width:100%;
+}
+button:active{
+  transform:scale(.99);
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:10px;
+}
+.card{
+  background:var(--panel2);
+  padding:12px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.06);
+}
+.card h3{
+  margin:0 0 8px;
+  color:var(--accent);
+  text-align:left;
+  font-size:17px;
+}
+.card p{
+  margin:5px 0;
+  font-size:13px;
+  color:var(--muted);
+}
+.card-top{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:8px;
+  align-items:start;
+}
+.card-name-line{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:6px;
+}
+.badge{
+  display:inline-block;
+  padding:3px 7px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:bold;
+  line-height:1.2;
+}
+.badge-fc3{background:#0f766e;color:#d1fae5;}
+.badge-fc2{background:#854d0e;color:#fef3c7;}
+.badge-fc1{background:#9a3412;color:#ffedd5;}
+.badge-t10{background:#1d4ed8;color:#dbeafe;}
+.badge-t9{background:#4b5563;color:#f9fafb;}
+.badge-none{background:#374151;color:#e5e7eb;}
+.badge-rally{background:#facc15;color:#111827;}
+.badge-pet{background:#0ea5e9;color:white;}
+.tier-line{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+  margin:8px 0;
+}
+.tier-pill{
+  background:var(--panel3);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:7px 6px;
+  text-align:center;
+  font-size:12px;
+  line-height:1.3;
+}
+.tier-pill strong{
+  display:block;
+  color:white;
+  font-size:14px;
+}
+.meta-line{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin:6px 0;
+}
+.bulk{
+  background:#ffaa00;
+  color:black;
+}
+.full{
+  color:var(--danger);
+  font-weight:bold;
+}
+.ok{
+  color:var(--ok);
+}
+.warn{
+  color:var(--warn);
+  font-weight:bold;
+}
+.box-list{
+  background:var(--panel2);
+  padding:12px;
+  border-radius:12px;
+  margin-top:10px;
+  line-height:1.8;
+}
+.box-list h3{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  align-items:center;
+  text-align:left;
+  margin:0 0 8px;
+  background:var(--panel3);
+  padding:10px;
+  border-radius:10px;
+}
+.box-list p{
+  margin:6px 0;
+  color:var(--muted);
+  font-size:13px;
+}
+.box-member-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  line-height:1.4;
+}
+.box-member-chip{
+  background:var(--panel3);
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:5px 8px;
+  font-size:12px;
+}
+.top-buttons{
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  flex-wrap:wrap;
+  max-width:1100px;
+  margin:0 auto 10px;
+}
+.top-buttons a{
+  background:var(--accent);
+  color:black;
+  padding:9px 12px;
+  border-radius:10px;
+  text-decoration:none;
+  font-weight:bold;
+  font-size:13px;
+}
+details{
+  background:var(--panel3);
+  padding:9px;
+  border-radius:10px;
+  margin-top:8px;
+}
+summary{
+  cursor:pointer;
+  color:var(--accent);
+  font-weight:bold;
+  font-size:13px;
+}
+hr{
+  border:0;
+  border-top:1px solid var(--line);
+  margin:10px 0;
+}
+.small{
+  font-size:12px;
+  color:#ddd;
+}
+.card select{
+  margin-top:4px;
+}
+.card label{
+  border-radius:10px;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+}
+.card label input{
+  margin:0;
+}
+@media(max-width:640px){
+  body{
+    padding:8px;
+  }
+  h1{
+    font-size:21px;
+  }
+  .box,.filter,.summary{
+    padding:10px;
+    margin:10px auto;
+    border-radius:12px;
+  }
+  .filter-row{
+    justify-content:flex-start;
+    gap:6px;
+  }
+  label{
+    font-size:12px;
+    padding:7px 9px;
+  }
+  .grid{
+    grid-template-columns:1fr;
+  }
+  .top-buttons{
+    justify-content:stretch;
+  }
+  .top-buttons a{
+    flex:1 1 30%;
+    text-align:center;
+    font-size:12px;
+    padding:8px;
+  }
+  .card{
+    padding:10px;
+  }
+  .card h3{
+    font-size:16px;
+  }
+  .tier-line{
+    grid-template-columns:repeat(3,1fr);
+  }
+  .box-list h3{
+    font-size:15px;
+  }
+}
 </style>
 </head>
 
@@ -41,8 +328,6 @@ hr{border:0;border-top:1px solid #35516c;margin:10px 0;}
 
 <h1>📦 王国箱 振り分け管理</h1>
 
-
-<script src="auth.js"></script>
 
 <div class="filter">
   <h2>🔄 データ更新</h2>
@@ -294,6 +579,16 @@ function tierRank(tier){
   return 0;
 }
 
+
+function tierBadgeClass(tier){
+  if(tier === "FC3") return "badge-fc3";
+  if(tier === "FC2") return "badge-fc2";
+  if(tier === "FC1") return "badge-fc1";
+  if(tier === "T10") return "badge-t10";
+  if(tier === "T9") return "badge-t9";
+  return "badge-none";
+}
+
 function checkedValues(parentId){
   return [...document.querySelectorAll(`#${parentId} input:checked`)]
     .map(x => x.value);
@@ -508,22 +803,39 @@ function playerCard(p){
   const tier = getLowestTier(p);
   const mark = p.status === "途中参加" ? "※" : "";
   const checked = selectedIds.has(p.id) ? "checked" : "";
+  const rallyBadge = rally.canRally === "可能" ? `<span class="badge badge-rally">👑集結主</span>` : "";
+  const petBadge = petsList(p).length > 0 ? `<span class="badge badge-pet">🐾${petSummary(p)}</span>` : "";
+  const cap = Number(rally.rallyCapacity || 0).toLocaleString();
 
   return `
     <div class="card">
-      <label>
-        <input type="checkbox" ${checked} onchange="toggleSelect('${p.id}', this.checked)">
-        選択
-      </label>
+      <div class="card-top">
+        <label>
+          <input type="checkbox" ${checked} onchange="toggleSelect('${p.id}', this.checked)">
+          選択
+        </label>
 
-      <h3>${mark}${p.playerName || "-"}</h3>
+        <div>
+          <div class="card-name-line">
+            <h3>${mark}${p.playerName || "-"}</h3>
+            <span class="badge ${tierBadgeClass(tier)}">${tier}</span>
+            ${rallyBadge}
+          </div>
 
-      <p>同盟：${p.alliance || "-"}</p>
-      <p>Tier：${tier}</p>
-      <p>盾：${getOneTroopTier(p,"Shield")} / 槍：${getOneTroopTier(p,"Spear")} / 弓：${getOneTroopTier(p,"Archer")}</p>
-      <p>参加：${p.status || "-"}</p>
-      <p>集結容量：${Number(rally.rallyCapacity || 0).toLocaleString()}</p>
-      <p>集結主：${rally.canRally || "-"}</p>
+          <div class="meta-line">
+            <span class="badge badge-none">${p.alliance || "-"}</span>
+            <span class="badge badge-none">${p.status || "-"}</span>
+            <span class="badge badge-none">容量 ${cap}</span>
+            ${petBadge}
+          </div>
+        </div>
+      </div>
+
+      <div class="tier-line">
+        <div class="tier-pill">🛡盾<strong>${getOneTroopTier(p,"Shield")}</strong></div>
+        <div class="tier-pill">⚔槍<strong>${getOneTroopTier(p,"Spear")}</strong></div>
+        <div class="tier-pill">🏹弓<strong>${getOneTroopTier(p,"Archer")}</strong></div>
+      </div>
 
       <p>箱：</p>
       <select onchange="changeBox('${p.id}', this.value)">
@@ -655,10 +967,13 @@ function renderBoxSummary(){
           ${
             members.length === 0
             ? "該当なし"
-            : members.map(x=>{
+            : `<div class="box-member-list">` + members.map(x=>{
                 const mark = x.status === "途中参加" ? "※" : "";
-                return `${x.alliance || "-"} ${mark}${x.playerName || "-"}`;
-              }).join("、")
+                const tier = getLowestTier(x);
+                const rally = getRally(x);
+                const crown = rally.canRally === "可能" ? "👑" : "";
+                return `<span class="box-member-chip">${crown}${x.alliance || "-"} ${mark}${x.playerName || "-"} <strong>${tier}</strong></span>`;
+              }).join("") + `</div>`
           }
         </p>
       </div>
