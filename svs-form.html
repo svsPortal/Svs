@@ -103,7 +103,6 @@ a{
     <option value="FC3">FC3</option>
     <option value="FC4">FC4</option>
     <option value="FC5">FC5</option>
-    <option value="FC6">FC6</option>
   </select>
 
   <select id="spearTier">
@@ -115,7 +114,6 @@ a{
     <option value="FC3">FC3</option>
     <option value="FC4">FC4</option>
     <option value="FC5">FC5</option>
-    <option value="FC6">FC6</option>
   </select>
 
   <select id="archerTier">
@@ -127,7 +125,6 @@ a{
     <option value="FC3">FC3</option>
     <option value="FC4">FC4</option>
     <option value="FC5">FC5</option>
-    <option value="FC6">FC6</option>
   </select>
 </div>
 
@@ -194,11 +191,15 @@ function tierFlags(tier,type){
     [`t10${type}`]: tier === "T10",
     [`fc1${type}`]: tier === "FC1",
     [`fc2${type}`]: tier === "FC2",
-    [`fc3${type}`]: tier === "FC3"
+    [`fc3${type}`]: tier === "FC3",
+    [`fc4${type}`]: tier === "FC4",
+    [`fc5${type}`]: tier === "FC5"
   };
 }
 
 function getTierFromData(d,type){
+  if(d[`fc5${type}`]) return "FC5";
+  if(d[`fc4${type}`]) return "FC4";
   if(d[`fc3${type}`]) return "FC3";
   if(d[`fc2${type}`]) return "FC2";
   if(d[`fc1${type}`]) return "FC1";
