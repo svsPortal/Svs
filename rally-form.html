@@ -41,36 +41,6 @@ a{color:#00d4ff;}
 </div>
 
 <div class="card">
-  <h2>盾英雄</h2>
-  <input id="shieldHero" placeholder="英雄名">
-  <select id="shieldStar"></select>
-  <select id="shieldSkill1"></select>
-  <select id="shieldSkill2"></select>
-  <select id="shieldSkill3"></select>
-  <select id="shieldWeapon"></select>
-</div>
-
-<div class="card">
-  <h2>槍英雄</h2>
-  <input id="spearHero" placeholder="英雄名">
-  <select id="spearStar"></select>
-  <select id="spearSkill1"></select>
-  <select id="spearSkill2"></select>
-  <select id="spearSkill3"></select>
-  <select id="spearWeapon"></select>
-</div>
-
-<div class="card">
-  <h2>弓英雄</h2>
-  <input id="archerHero" placeholder="英雄名">
-  <select id="archerStar"></select>
-  <select id="archerSkill1"></select>
-  <select id="archerSkill2"></select>
-  <select id="archerSkill3"></select>
-  <select id="archerWeapon"></select>
-</div>
-
-<div class="card">
   <h2>ローガン</h2>
   <select id="loganStar"></select>
   <select id="loganSkill1"></select>
@@ -188,7 +158,6 @@ function makeSelect(id,max,label){
 
 function setupSelects(){
   const starIds = [
-    "shieldStar","spearStar","archerStar",
     "loganStar","gregStar","jeronimoStar",
     "jessieStar","patrickStar","soyoonStar","rinsetsuStar"
   ];
@@ -196,9 +165,6 @@ function setupSelects(){
   starIds.forEach(id => makeSelect(id,5,"星"));
 
   const skillIds = [
-    "shieldSkill1","shieldSkill2","shieldSkill3",
-    "spearSkill1","spearSkill2","spearSkill3",
-    "archerSkill1","archerSkill2","archerSkill3",
     "loganSkill1","loganSkill2","loganSkill3",
     "gregSkill1","gregSkill2","gregSkill3",
     "jeronimoSkill1","jeronimoSkill2","jeronimoSkill3",
@@ -208,7 +174,6 @@ function setupSelects(){
   skillIds.forEach(id => makeSelect(id,5,"スキル"));
 
   const weaponIds = [
-    "shieldWeapon","spearWeapon","archerWeapon",
     "loganWeapon","gregWeapon","jeronimoWeapon"
   ];
 
@@ -366,27 +331,6 @@ window.loadPlayer = async function(){
   setVal("rallyCapacity",d.rallyCapacity);
   setVal("canRally",d.canRally || "可能");
 
-  setVal("shieldHero",d.shieldHero);
-  setVal("shieldStar",d.shieldStar);
-  setVal("shieldSkill1",d.shieldSkill1);
-  setVal("shieldSkill2",d.shieldSkill2);
-  setVal("shieldSkill3",d.shieldSkill3);
-  setVal("shieldWeapon",d.shieldWeapon);
-
-  setVal("spearHero",d.spearHero);
-  setVal("spearStar",d.spearStar);
-  setVal("spearSkill1",d.spearSkill1);
-  setVal("spearSkill2",d.spearSkill2);
-  setVal("spearSkill3",d.spearSkill3);
-  setVal("spearWeapon",d.spearWeapon);
-
-  setVal("archerHero",d.archerHero);
-  setVal("archerStar",d.archerStar);
-  setVal("archerSkill1",d.archerSkill1);
-  setVal("archerSkill2",d.archerSkill2);
-  setVal("archerSkill3",d.archerSkill3);
-  setVal("archerWeapon",d.archerWeapon);
-
   setVal("loganStar",d.loganStar);
   setVal("loganSkill1",d.loganSkill1);
   setVal("loganSkill2",d.loganSkill2);
@@ -436,27 +380,6 @@ async function submitRally(){
     playerName,
     rallyCapacity:num("rallyCapacity"),
     canRally:val("canRally"),
-
-    shieldHero:val("shieldHero"),
-    shieldStar:num("shieldStar"),
-    shieldSkill1:num("shieldSkill1"),
-    shieldSkill2:num("shieldSkill2"),
-    shieldSkill3:num("shieldSkill3"),
-    shieldWeapon:num("shieldWeapon"),
-
-    spearHero:val("spearHero"),
-    spearStar:num("spearStar"),
-    spearSkill1:num("spearSkill1"),
-    spearSkill2:num("spearSkill2"),
-    spearSkill3:num("spearSkill3"),
-    spearWeapon:num("spearWeapon"),
-
-    archerHero:val("archerHero"),
-    archerStar:num("archerStar"),
-    archerSkill1:num("archerSkill1"),
-    archerSkill2:num("archerSkill2"),
-    archerSkill3:num("archerSkill3"),
-    archerWeapon:num("archerWeapon"),
 
     loganStar:num("loganStar"),
     loganSkill1:num("loganSkill1"),
