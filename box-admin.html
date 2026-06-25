@@ -408,7 +408,16 @@ hr{
     <option value="10">Lv10以上</option>
   </select>
 
-  <h3>箱状態</h3>
+
+  <h3>専門家条件</h3>
+  <div class="filter-row">
+    <label><input type="checkbox" id="filterRomulusTalent5"> ロムルス天賦Lv5</label>
+    <label><input type="checkbox" id="filterRomulusFinalDefense5"> 最終防衛線Lv5</label>
+    <label><input type="checkbox" id="filterRomulusAeetes5"> アイエーテースの威光Lv5</label>
+    <label><input type="checkbox" id="filterRomulusUnity5"> 一致団結Lv5</label>
+  </div>
+
+    <h3>箱状態</h3>
   <div class="filter-row" id="boxFilters">
     <label><input type="checkbox" value="未振り分け" checked> 未振り分け</label>
     <label><input type="checkbox" value="王国1箱" checked> 王国1箱</label>
@@ -646,6 +655,52 @@ function petSummary(p){
   ).join("、");
 }
 
+
+function romulusSummary(p){
+  const rally = getRally(p);
+  const hasAny =
+    Number(rally.romulusTalentLevel || 0) > 0 ||
+    Number(rally.romulusFinalDefenseLine || 0) > 0 ||
+    Number(rally.romulusAeetesGlory || 0) > 0 ||
+    Number(rally.romulusUnity || 0) > 0;
+
+  if(!hasAny){
+    return "ロムルス登録なし";
+  }
+
+  return `天賦Lv${rally.romulusTalentLevel || 0} / 最終防衛線Lv${rally.romulusFinalDefenseLine || 0} / アイエーテースの威光Lv${rally.romulusAeetesGlory || 0} / 一致団結Lv${rally.romulusUnity || 0}`;
+}
+
+function hasRomulusCondition(p){
+  const rally = getRally(p);
+
+  if(document.getElementById("filterRomulusTalent5")?.checked &&
+     Number(rally.romulusTalentLevel || 0) < 5){
+    return false;
+  }
+
+  if(document.getElementById("filterRomulusFinalDefense5")?.checked &&
+     Number(rally.romulusFinalDefenseLine || 0) < 5){
+    return false;
+  }
+
+  if(document.getElementById("filterRomulusAeetes5")?.checked &&
+     Number(rally.romulusAeetesGlory || 0) < 5){
+    return false;
+  }
+
+  if(document.getElementById("filterRomulusUnity5")?.checked &&
+     Number(rally.romulusUnity || 0) < 5){
+    return false;
+  }
+
+  if(!hasRomulusCondition(p)){
+    return false;
+  }
+
+  return true;
+}
+
 function hasRallyCondition(p){
   const rally = getRally(p);
 
@@ -802,6 +857,10 @@ window.resetFilters = function(){
   document.getElementById("petNameFilter").value = "";
   document.getElementById("petSkillFilter").value = "";
   document.getElementById("searchName").value = "";
+  document.getElementById("filterRomulusTalent5").checked = false;
+  document.getElementById("filterRomulusFinalDefense5").checked = false;
+  document.getElementById("filterRomulusAeetes5").checked = false;
+  document.getElementById("filterRomulusUnity5").checked = false;
   document.getElementById("sortType").value = "capacityDesc";
 
   applyFilters();
@@ -829,6 +888,8 @@ function playerCard(p){
   const checked = selectedIds.has(p.id) ? "checked" : "";
   const rallyBadge = rally.canRally === "可能" ? `<span class="badge badge-rally">👑集結主</span>` : "";
   const petBadge = petsList(p).length > 0 ? `<span class="badge badge-pet">🐾${petSummary(p)}</span>` : "";
+  const romulus = romulusSummary(p);
+  const romulusBadge = romulus === "ロムルス登録なし" ? "" : `<span class="badge badge-pet">🧠ロムルス</span>`;
   const cap = Number(rally.rallyCapacity || 0).toLocaleString();
 
   return `
@@ -851,6 +912,7 @@ function playerCard(p){
             <span class="badge badge-none">${p.status || "-"}</span>
             <span class="badge badge-none">容量 ${cap}</span>
             ${petBadge}
+            ${romulusBadge}
           </div>
         </div>
       </div>
@@ -881,6 +943,16 @@ function playerCard(p){
         <p>パトリック：${rally.patrickSkill1 || 0}</p>
         <p>ソユン：${rally.soyoonSkill1 || 0}</p>
         <p>リンセツ：${rally.rinsetsuSkill1 || 0}</p>
+      </details>
+
+      <details>
+        <summary>🧠 ロムルス詳細を見る</summary>
+        <p>${romulusSummary(p)}</p>
+      </details>
+
+      <details>
+        <summary>🐾 ペット詳細を見る</summary>
+        <p>${petSummary(p)}</p>
       </details>
     </div>
   `;
