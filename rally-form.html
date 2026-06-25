@@ -134,6 +134,7 @@ a{color:#00d4ff;}
 
 <div class="card">
   <h2>🧠 専門家情報</h2>
+  <p>専門家を選択すると、回答するスキル名が自動で切り替わります。</p>
 
   <div id="expertsArea"></div>
 
@@ -189,6 +190,15 @@ const PET_NAMES = [
 const EXPERT_NAMES = [
   "ロムルス"
 ];
+
+const EXPERT_SKILLS = {
+  "ロムルス": [
+    "天賦レベル",
+    "最終防衛線レベル",
+    "アイエーテースの威光レベル",
+    "一致団結レベル"
+  ]
+};
 
 function makeSelect(id,max,label){
   const el = document.getElementById(id);
@@ -399,6 +409,43 @@ function expertLevelOptions(selectedLevel = 0,label = "Lv"){
   return html;
 }
 
+function getExpertSkillLabels(name){
+  return EXPERT_SKILLS[name] || [
+    "スキル1",
+    "スキル2",
+    "スキル3",
+    "スキル4"
+  ];
+}
+
+function expertSkillSelectHtml(id,skillIndex,selectedLevel = 0,label = "スキル"){
+  return `
+    <select id="expert${id}Skill${skillIndex}">
+      ${expertLevelOptions(selectedLevel, label + " Lv")}
+    </select>
+  `;
+}
+
+window.updateExpertSkillLabels = function(id, expertData = null){
+  const name = val(`expert${id}Name`);
+  const labels = getExpertSkillLabels(name);
+  const area = document.getElementById(`expert${id}SkillsArea`);
+
+  if(!area) return;
+
+  const skill1 = expertData?.skill1 ?? expertData?.talentLevel ?? 0;
+  const skill2 = expertData?.skill2 ?? expertData?.finalDefenseLevel ?? 0;
+  const skill3 = expertData?.skill3 ?? expertData?.aeetesGloryLevel ?? 0;
+  const skill4 = expertData?.skill4 ?? expertData?.unityLevel ?? 0;
+
+  area.innerHTML = `
+    ${expertSkillSelectHtml(id,1,skill1,labels[0])}
+    ${expertSkillSelectHtml(id,2,skill2,labels[1])}
+    ${expertSkillSelectHtml(id,3,skill3,labels[2])}
+    ${expertSkillSelectHtml(id,4,skill4,labels[3])}
+  `;
+}
+
 window.addExpert = function(expertData = null){
   expertCount++;
 
@@ -409,33 +456,15 @@ window.addExpert = function(expertData = null){
   div.dataset.expertId = id;
 
   const selectedName = expertData?.name || "";
-  const talentLevel = expertData?.talentLevel || 0;
-  const finalDefenseLevel = expertData?.finalDefenseLevel || 0;
-  const aeetesGloryLevel = expertData?.aeetesGloryLevel || 0;
-  const unityLevel = expertData?.unityLevel || 0;
 
   div.innerHTML = `
     <h3>専門家${id}</h3>
 
-    <select id="expert${id}Name">
+    <select id="expert${id}Name" onchange="updateExpertSkillLabels(${id})">
       ${expertNameOptions(selectedName)}
     </select>
 
-    <select id="expert${id}TalentLevel">
-      ${expertLevelOptions(talentLevel,"天賦Lv")}
-    </select>
-
-    <select id="expert${id}FinalDefenseLevel">
-      ${expertLevelOptions(finalDefenseLevel,"最終防衛線Lv")}
-    </select>
-
-    <select id="expert${id}AeetesGloryLevel">
-      ${expertLevelOptions(aeetesGloryLevel,"アイエーテースの威光Lv")}
-    </select>
-
-    <select id="expert${id}UnityLevel">
-      ${expertLevelOptions(unityLevel,"一致団結Lv")}
-    </select>
+    <div id="expert${id}SkillsArea"></div>
 
     <button class="delete-btn" type="button" onclick="removeExpert(this)">
       この専門家を削除
@@ -443,6 +472,8 @@ window.addExpert = function(expertData = null){
   `;
 
   document.getElementById("expertsArea").appendChild(div);
+
+  updateExpertSkillLabels(id, expertData);
 }
 
 window.removeExpert = function(button){
@@ -465,25 +496,35 @@ function getExperts(){
     const name =
       val(`expert${id}Name`);
 
-    const talentLevel =
-      num(`expert${id}TalentLevel`);
+    const skill1 =
+      num(`expert${id}Skill1`);
 
-    const finalDefenseLevel =
-      num(`expert${id}FinalDefenseLevel`);
+    const skill2 =
+      num(`expert${id}Skill2`);
 
-    const aeetesGloryLevel =
-      num(`expert${id}AeetesGloryLevel`);
+    const skill3 =
+      num(`expert${id}Skill3`);
 
-    const unityLevel =
-      num(`expert${id}UnityLevel`);
+    const skill4 =
+      num(`expert${id}Skill4`);
+
+    const skillLabels =
+      getExpertSkillLabels(name);
 
     if(name){
       experts.push({
         name,
-        talentLevel,
-        finalDefenseLevel,
-        aeetesGloryLevel,
-        unityLevel
+        skill1,
+        skill2,
+        skill3,
+        skill4,
+        skillLabels,
+
+        // ロムルス用の互換フィールド
+        talentLevel:skill1,
+        finalDefenseLevel:skill2,
+        aeetesGloryLevel:skill3,
+        unityLevel:skill4
       });
     }
   });
