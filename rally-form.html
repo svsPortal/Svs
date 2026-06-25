@@ -14,7 +14,7 @@ button{background:#00d4ff;color:black;font-weight:bold;cursor:pointer;}
 .load-btn{background:#ffaa00;}
 .add-btn{background:#66ff99;color:black;}
 .delete-btn{background:#ff4444;color:white;}
-.pet-card{background:#173754;padding:15px;border-radius:12px;margin-top:15px;}
+.pet-card,.expert-card{background:#173754;padding:15px;border-radius:12px;margin-top:15px;}
 a{color:#00d4ff;}
 </style>
 </head>
@@ -38,6 +38,36 @@ a{color:#00d4ff;}
     <option value="可能">集結主可能</option>
     <option value="不可">集結主不可</option>
   </select>
+</div>
+
+<div class="card">
+  <h2>盾英雄</h2>
+  <input id="shieldHero" placeholder="英雄名">
+  <select id="shieldStar"></select>
+  <select id="shieldSkill1"></select>
+  <select id="shieldSkill2"></select>
+  <select id="shieldSkill3"></select>
+  <select id="shieldWeapon"></select>
+</div>
+
+<div class="card">
+  <h2>槍英雄</h2>
+  <input id="spearHero" placeholder="英雄名">
+  <select id="spearStar"></select>
+  <select id="spearSkill1"></select>
+  <select id="spearSkill2"></select>
+  <select id="spearSkill3"></select>
+  <select id="spearWeapon"></select>
+</div>
+
+<div class="card">
+  <h2>弓英雄</h2>
+  <input id="archerHero" placeholder="英雄名">
+  <select id="archerStar"></select>
+  <select id="archerSkill1"></select>
+  <select id="archerSkill2"></select>
+  <select id="archerSkill3"></select>
+  <select id="archerWeapon"></select>
 </div>
 
 <div class="card">
@@ -103,6 +133,16 @@ a{color:#00d4ff;}
 </div>
 
 <div class="card">
+  <h2>🧠 専門家情報</h2>
+
+  <div id="expertsArea"></div>
+
+  <button class="add-btn" type="button" onclick="addExpert()">
+    ＋ 専門家を追加
+  </button>
+</div>
+
+<div class="card">
   <h2>メモ</h2>
 
   <textarea id="memo" placeholder="メモ"></textarea>
@@ -139,10 +179,15 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 let petCount = 0;
+let expertCount = 0;
 
 const PET_NAMES = [
   "雪豹",
   "巨鳥"
+];
+
+const EXPERT_NAMES = [
+  "ロムルス"
 ];
 
 function makeSelect(id,max,label){
@@ -156,8 +201,21 @@ function makeSelect(id,max,label){
   }
 }
 
+
+function makeLevelSelect(id,max,label){
+  const el = document.getElementById(id);
+  if(!el) return;
+
+  el.innerHTML = "";
+
+  for(let i=0;i<=max;i++){
+    el.innerHTML += `<option value="${i}">${label}${i}</option>`;
+  }
+}
+
 function setupSelects(){
   const starIds = [
+    "shieldStar","spearStar","archerStar",
     "loganStar","gregStar","jeronimoStar",
     "jessieStar","patrickStar","soyoonStar","rinsetsuStar"
   ];
@@ -165,6 +223,9 @@ function setupSelects(){
   starIds.forEach(id => makeSelect(id,5,"星"));
 
   const skillIds = [
+    "shieldSkill1","shieldSkill2","shieldSkill3",
+    "spearSkill1","spearSkill2","spearSkill3",
+    "archerSkill1","archerSkill2","archerSkill3",
     "loganSkill1","loganSkill2","loganSkill3",
     "gregSkill1","gregSkill2","gregSkill3",
     "jeronimoSkill1","jeronimoSkill2","jeronimoSkill3",
@@ -174,6 +235,7 @@ function setupSelects(){
   skillIds.forEach(id => makeSelect(id,5,"スキル"));
 
   const weaponIds = [
+    "shieldWeapon","spearWeapon","archerWeapon",
     "loganWeapon","gregWeapon","jeronimoWeapon"
   ];
 
@@ -309,6 +371,142 @@ function loadPets(pets){
   });
 }
 
+function expertNameOptions(selectedName = ""){
+  let html = `<option value="">専門家を選択</option>`;
+
+  EXPERT_NAMES.forEach(name=>{
+    html += `
+      <option value="${name}" ${selectedName === name ? "selected" : ""}>
+        ${name}
+      </option>
+    `;
+  });
+
+  return html;
+}
+
+function expertLevelOptions(selectedLevel = 0,label = "Lv"){
+  let html = "";
+
+  for(let i=0;i<=5;i++){
+    html += `
+      <option value="${i}" ${Number(selectedLevel) === i ? "selected" : ""}>
+        ${label}${i}
+      </option>
+    `;
+  }
+
+  return html;
+}
+
+window.addExpert = function(expertData = null){
+  expertCount++;
+
+  const id = expertCount;
+
+  const div = document.createElement("div");
+  div.className = "expert-card";
+  div.dataset.expertId = id;
+
+  const selectedName = expertData?.name || "";
+  const talentLevel = expertData?.talentLevel || 0;
+  const finalDefenseLevel = expertData?.finalDefenseLevel || 0;
+  const aeetesGloryLevel = expertData?.aeetesGloryLevel || 0;
+  const unityLevel = expertData?.unityLevel || 0;
+
+  div.innerHTML = `
+    <h3>専門家${id}</h3>
+
+    <select id="expert${id}Name">
+      ${expertNameOptions(selectedName)}
+    </select>
+
+    <select id="expert${id}TalentLevel">
+      ${expertLevelOptions(talentLevel,"天賦Lv")}
+    </select>
+
+    <select id="expert${id}FinalDefenseLevel">
+      ${expertLevelOptions(finalDefenseLevel,"最終防衛線Lv")}
+    </select>
+
+    <select id="expert${id}AeetesGloryLevel">
+      ${expertLevelOptions(aeetesGloryLevel,"アイエーテースの威光Lv")}
+    </select>
+
+    <select id="expert${id}UnityLevel">
+      ${expertLevelOptions(unityLevel,"一致団結Lv")}
+    </select>
+
+    <button class="delete-btn" type="button" onclick="removeExpert(this)">
+      この専門家を削除
+    </button>
+  `;
+
+  document.getElementById("expertsArea").appendChild(div);
+}
+
+window.removeExpert = function(button){
+  const card = button.closest(".expert-card");
+
+  if(card){
+    card.remove();
+  }
+}
+
+function getExperts(){
+  const experts = [];
+
+  const cards =
+    document.querySelectorAll(".expert-card");
+
+  cards.forEach(card=>{
+    const id = card.dataset.expertId;
+
+    const name =
+      val(`expert${id}Name`);
+
+    const talentLevel =
+      num(`expert${id}TalentLevel`);
+
+    const finalDefenseLevel =
+      num(`expert${id}FinalDefenseLevel`);
+
+    const aeetesGloryLevel =
+      num(`expert${id}AeetesGloryLevel`);
+
+    const unityLevel =
+      num(`expert${id}UnityLevel`);
+
+    if(name){
+      experts.push({
+        name,
+        talentLevel,
+        finalDefenseLevel,
+        aeetesGloryLevel,
+        unityLevel
+      });
+    }
+  });
+
+  return experts;
+}
+
+function clearExperts(){
+  document.getElementById("expertsArea").innerHTML = "";
+  expertCount = 0;
+}
+
+function loadExperts(experts){
+  clearExperts();
+
+  if(Array.isArray(experts)){
+    experts.forEach(expert=>{
+      addExpert(expert);
+    });
+  }
+}
+
+
 window.loadPlayer = async function(){
   const playerName = val("playerName");
 
@@ -330,6 +528,27 @@ window.loadPlayer = async function(){
 
   setVal("rallyCapacity",d.rallyCapacity);
   setVal("canRally",d.canRally || "可能");
+
+  setVal("shieldHero",d.shieldHero);
+  setVal("shieldStar",d.shieldStar);
+  setVal("shieldSkill1",d.shieldSkill1);
+  setVal("shieldSkill2",d.shieldSkill2);
+  setVal("shieldSkill3",d.shieldSkill3);
+  setVal("shieldWeapon",d.shieldWeapon);
+
+  setVal("spearHero",d.spearHero);
+  setVal("spearStar",d.spearStar);
+  setVal("spearSkill1",d.spearSkill1);
+  setVal("spearSkill2",d.spearSkill2);
+  setVal("spearSkill3",d.spearSkill3);
+  setVal("spearWeapon",d.spearWeapon);
+
+  setVal("archerHero",d.archerHero);
+  setVal("archerStar",d.archerStar);
+  setVal("archerSkill1",d.archerSkill1);
+  setVal("archerSkill2",d.archerSkill2);
+  setVal("archerSkill3",d.archerSkill3);
+  setVal("archerWeapon",d.archerWeapon);
 
   setVal("loganStar",d.loganStar);
   setVal("loganSkill1",d.loganSkill1);
@@ -363,6 +582,26 @@ window.loadPlayer = async function(){
 
   loadPets(d.pets);
 
+  const experts =
+    Array.isArray(d.experts)
+    ? d.experts
+    : (
+        d.romulusTalentLevel ||
+        d.romulusFinalDefenseLine ||
+        d.romulusAeetesGlory ||
+        d.romulusUnity
+      )
+      ? [{
+          name:"ロムルス",
+          talentLevel:d.romulusTalentLevel || 0,
+          finalDefenseLevel:d.romulusFinalDefenseLine || 0,
+          aeetesGloryLevel:d.romulusAeetesGlory || 0,
+          unityLevel:d.romulusUnity || 0
+        }]
+      : [];
+
+  loadExperts(experts);
+
   setVal("memo",d.memo);
 
   alert("前回の情報を読み込みました");
@@ -380,6 +619,27 @@ async function submitRally(){
     playerName,
     rallyCapacity:num("rallyCapacity"),
     canRally:val("canRally"),
+
+    shieldHero:val("shieldHero"),
+    shieldStar:num("shieldStar"),
+    shieldSkill1:num("shieldSkill1"),
+    shieldSkill2:num("shieldSkill2"),
+    shieldSkill3:num("shieldSkill3"),
+    shieldWeapon:num("shieldWeapon"),
+
+    spearHero:val("spearHero"),
+    spearStar:num("spearStar"),
+    spearSkill1:num("spearSkill1"),
+    spearSkill2:num("spearSkill2"),
+    spearSkill3:num("spearSkill3"),
+    spearWeapon:num("spearWeapon"),
+
+    archerHero:val("archerHero"),
+    archerStar:num("archerStar"),
+    archerSkill1:num("archerSkill1"),
+    archerSkill2:num("archerSkill2"),
+    archerSkill3:num("archerSkill3"),
+    archerWeapon:num("archerWeapon"),
 
     loganStar:num("loganStar"),
     loganSkill1:num("loganSkill1"),
@@ -412,6 +672,7 @@ async function submitRally(){
     rinsetsuSkill1:num("rinsetsuSkill1"),
 
     pets:getPets(),
+    experts:getExperts(),
 
     memo:val("memo"),
     updatedAt:new Date().toISOString()
