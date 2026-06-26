@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>盟主会議事録</title>
+
+<style>
+body{margin:0;background:#071a2d;color:white;font-family:sans-serif;padding:18px;}
+h1,h2,h3{color:#00d4ff;text-align:center;}
+.top-buttons{max-width:1000px;margin:0 auto 18px auto;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
+.top-buttons a{background:#00d4ff;color:black;padding:10px 15px;border-radius:10px;text-decoration:none;font-weight:bold;}
+.notice,.minutes-card{max-width:1000px;margin:18px auto;background:#132b45;padding:18px;border-radius:14px;}
+.notice p{color:#ddd;line-height:1.7;}
+.minutes-card h2{margin-top:0;}
+.minutes-meta{color:#ddd;font-size:14px;text-align:center;margin-bottom:12px;}
+.image-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:12px;}
+.image-box{background:#173754;padding:10px;border-radius:12px;}
+.image-box img{width:100%;border-radius:10px;display:block;}
+.file-buttons{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:15px;}
+.file-buttons a{background:#ffaa00;color:black;padding:10px 15px;border-radius:10px;text-decoration:none;font-weight:bold;}
+.tag{display:inline-block;background:#173754;color:#fff;padding:5px 10px;border-radius:999px;font-size:13px;margin:4px;}
+.small{color:#ddd;font-size:13px;line-height:1.6;}
+@media(max-width:600px){
+  body{padding:12px;}
+  h1{font-size:24px;}
+  .minutes-card,.notice{padding:14px;}
+  .image-grid{grid-template-columns:1fr;}
+  .top-buttons a{flex:1 1 40%;text-align:center;font-size:14px;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="top-buttons">
+  <a href="index.html">🏠 TOP</a>
+  <a href="svs-admin.html">⚔ SVS管理</a>
+  <a href="box-admin.html">📦 王国箱管理</a>
+</div>
+
+<h1>📜 盟主会議事録</h1>
+
+<div class="notice">
+  <h2>使い方</h2>
+  <p>
+    GitHubの <strong>images</strong> フォルダに議事録画像を入れると、このページで表示できます。<br>
+    PowerPointやPDFは <strong>files</strong> フォルダに入れて、下のリンクを書き換えてください。
+  </p>
+  <p class="small">
+    例：images/2026-06-26-01.jpg<br>
+    例：files/2026-06-26_盟主会議事録.pptx
+  </p>
+</div>
+
+<div class="minutes-card">
+  <h2>📅 2026/06/26 盟主会</h2>
+
+  <div class="minutes-meta">
+    <span class="tag">盟主会</span>
+    <span class="tag">王国ルール</span>
+    <span class="tag">SVS関連</span>
+  </div>
+
+  <div class="image-grid">
+    <div class="image-box">
+      <img src="images/HLECIDea4AAbbOP.jpg">
+    </div>
+
+    <div class="image-box">
+    <img src="images/HLECIDea4AAbbOP.jpg">
+    </div>
+  </div>
+
+  <div class="file-buttons">
+    <a href="files/2026-06-26_盟主会議事録.pptx" download>📥 PowerPointをダウンロード</a>
+  </div>
+</div>
+
+<div class="minutes-card">
+  <h2>📅 2026/07/03 盟主会</h2>
+
+  <div class="minutes-meta">
+    <span class="tag">盟主会</span>
+    <span class="tag">資料</span>
+  </div>
+
+  <div class="image-grid">
+    <div class="image-box">
+      <img src="images/2026-07-03-01.png" alt="2026/07/03 盟主会議事録 1枚目">
+    </div>
+  </div>
+
+  <div class="file-buttons">
+    <a href="files/2026-07-03_盟主会議事録.pdf" download>📥 PDFをダウンロード</a>
+  </div>
+</div>
+
+<div class="notice">
+  <h2>追加方法</h2>
+  <p class="small">
+    新しい議事録を追加する場合は、このページ内の <strong>minutes-card</strong> をコピーして、日付・画像ファイル名・資料ファイル名を書き換えてください。
+  </p>
+</div>
+
+</body>
+</html>
